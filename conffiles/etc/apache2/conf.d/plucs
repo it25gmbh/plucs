@@ -1,0 +1,29 @@
+@%@UCRWARNING=#@%@
+# --------------------------------------------------------
+# Apache configurations needed by the 'plucs' package
+# --------------------------------------------------------
+@!@
+if configRegistry.is_true('plucs/http/proxy',False):
+	print '<IfModule mod_rewrite.c>'
+	print 'RewriteEngine On'
+	# ** NOTE **
+	#	these rules equally rewrite https:// requests into
+	#	localhost http requests, very handy!
+
+	# ** NOTE **
+	#	We prepend a caret (^) onto the url, and we force it to start
+	#	and end with a slash. This ensures the URL to be never matched
+	#	as a relative path.
+
+	if configRegistry.is_true('plucs/http/bind',False):
+		url=configRegistry.get('plucs/http/bind/url')
+		if url[0] != '/': url='/'+url
+		if url[-1] != '/': url=url+'/'
+		print 'RewriteRule ^%s http://127.0.0.1:5280/http-bind/ [P]' % url
+	if configRegistry.is_true('plucs/http/poll',False):
+		url=configRegistry.get('plucs/http/poll/url')
+		if url[0] != '/': url='/'+url
+		if url[-1] != '/': url=url+'/'
+		print 'RewriteRule ^%s http://127.0.0.1:5280/http-poll/ [P]' % url
+	print '</IfModule>'
+@!@

@@ -1,0 +1,52 @@
+#! /bin/sh
+#
+# PLUCS-SCHEMA unjoin script
+#
+# Copyright 2013-2014 it25 GmbH
+#
+# http://www.it25.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <http://www.gnu.org/licenses/>.
+
+VERSION=1
+
+. /usr/share/univention-lib/base.sh
+. /usr/share/univention-lib/ldap.sh
+. /usr/share/univention-join/joinscripthelper.lib
+
+joinscript_init
+
+SERVICE="XMPP"
+
+eval "$(univention-config-registry shell)"
+
+if ucs_isServiceUnused "${SERVICE}" "$@"; then
+
+	univention-directory-manager settings/extended_attribute remove "$@" --dn "cn=UniventionXMPP-User-Enabled,cn=xmpp,cn=custom attributes,cn=univention,$ldap_base"
+	univention-directory-manager settings/extended_attribute remove "$@" --dn "cn=UniventionXMPP-User-Domain,cn=xmpp,cn=custom attributes,cn=univention,$ldap_base"
+	univention-directory-manager settings/extended_attribute remove "$@" --dn "cn=UniventionXMPP-Group-Enabled,cn=xmpp,cn=custom attributes,cn=univention,$ldap_base"
+	univention-directory-manager settings/extended_attribute remove "$@" --dn "cn=UniventionXMPP-Host-Domains,cn=xmpp,cn=custom attributes,cn=univention,$ldap_base"
+	univention-directory-manager container/cn remove "$@" --dn "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base"
+
+	stop_udm_cli_server
+fi
+
+# Remove old join script from index file otherwise the re-installation will not work
+joinscript_remove_script_from_status_file 92plucs-schema.inst
+
+exit 0

@@ -1,0 +1,5 @@
+[plucs]
+description[de]=XMPP (Jabber) Dienst
+description[en]=XMPP (jabber) service
+start_type=xmpp/autostart
+programs=/var/lib/ejabberd

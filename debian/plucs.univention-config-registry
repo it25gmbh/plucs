@@ -1,0 +1,35 @@
+Type: file
+File: etc/default/plucs
+Variables: plucs/autostart
+Variables: xmpp/domains
+
+Type: file
+File: etc/ejabberd/ejabberd.cfg
+User: ejabberd
+Group: ejabberd
+Mode: 0640
+Variables: ldap/base
+Variables: ldap/hostdn
+Variables: ldap/server/name
+Variables: ldap/server/addition
+Variables: xmpp/domains
+Variables: plucs/loglevel
+Variables: plucs/tls
+Variables: plucs/certfile
+Variables: plucs/grouplabel
+Variables: plucs/userlabel
+Variables: plucs/ldap/tls
+Variables: plucs/ldap/port
+Variables: plucs/s2s
+Variables: plucs/s2s/tls
+Variables: plucs/s2s/certfile
+Variables: plucs/http/bind
+Variables: plucs/http/poll
+
+Type: file
+File: etc/apache2/conf.d/plucs
+Variables: plucs/http/proxy
+Variables: plucs/http/bind
+Variables: plucs/http/bind/url
+Variables: plucs/http/poll
+Variables: plucs/http/poll/url

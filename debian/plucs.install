@@ -1,0 +1,4 @@
+92plucs.inst usr/lib/univention-install
+93plucs-uninstall.uinst usr/lib/univention-uninstall
+plucs.py usr/lib/univention-directory-listener/system
+70plucs usr/lib/univention-server/server_password_change.d

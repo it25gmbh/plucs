@@ -1,0 +1,21 @@
+Copyright 2013-2015 it25 GmbH
+
+http://www.it25.de/
+
+All rights reserved.
+
+The source code of the software contained in this package
+as well as the source package itself are made available
+under the terms of the GNU Affero General Public License version 3
+(GNU AGPL V3) as published by the Free Software Foundation.
+
+In the case you use the software under the terms of the GNU AGPL V3,
+the program is provided in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public
+License with the Debian GNU/Linux or Univention distribution in file
+/usr/share/common-licenses/AGPL-3; if not, see
+<http://www.gnu.org/licenses/>.

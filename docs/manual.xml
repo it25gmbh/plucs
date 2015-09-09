@@ -1,0 +1,1072 @@
+<?xml version='1.0'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<book>
+	<bookinfo>
+		<title>PLUCS - Owner&apos;s Manual</title>
+	</bookinfo>
+	<chapter id="preface">
+		<title>Preface</title>
+		<para>
+			This documentation applies to <emphasis>PLUCS</emphasis>
+			version 0.2-2.
+		</para>
+		<para>
+			<emphasis>PLUCS</emphasis> is an application that integrates XMPP services into an
+			UCS domain. Besides the normal features of XMPP services, you&apos;ll
+			get:-
+		</para>
+		<itemizedlist>
+			<listitem>
+				<para>Tools to maintain and configure your service
+					installation(s)
+				</para>
+			</listitem>
+			<listitem>
+				<para>Tools to manage XMPP-related properties of user and group
+					objects.
+				</para>
+			</listitem>
+		</itemizedlist>
+		<para>All the administration tasks can be performed by using the normal
+			UCS administration tools: the Management Console and the
+			Configuration Registry.
+		</para>
+	</chapter>
+	<chapter id="installation">
+		<title>Installation</title>
+		<para>
+			The preferred method of installing
+			<emphasis>PLUCS</emphasis>
+			is via the
+			<emphasis>Univention App Center</emphasis>
+			. This method
+			ensures installation of dependent packages according to the
+			server&apos;s role(s).
+		</para>
+		<para>The installation process performs the following domain-wide
+			tasks:-
+		</para>
+		<itemizedlist>
+			<listitem>
+				<para>
+					Extends the LDAP schema definitions, by installing the
+					<emphasis>plucs-schema</emphasis>
+					package on the Master Domain
+					Controller (and on any other server roles that hold a copy of the
+					LDAP directory)
+				</para>
+			</listitem>
+			<listitem>
+				<para>Maps new properties of hosts, users and groups to LDAP
+					attributes
+				</para>
+			</listitem>
+		</itemizedlist>
+		<para>On the host where the XMPP service is to be installed, the
+			installation process performs these tasks:-
+		</para>
+		<itemizedlist>
+			<listitem>
+				<para>
+					Adds the
+					<emphasis>XMPP</emphasis>
+					service to the host where
+					the
+					<emphasis>PLUCS</emphasis>
+					package is installed
+				</para>
+			</listitem>
+			<listitem>
+				<para>Adds the DNS domain name of the UCS domain to the first host
+					being installed
+				</para>
+			</listitem>
+			<listitem>
+				<para>Generates the service configuration file for the XMPP
+					daemon.
+				</para>
+			</listitem>
+			<listitem>
+				<para>Converts and includes the UCS-generated host certificate into
+					the service configuration.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Establishes a
+					<emphasis>listener module</emphasis>
+					which will
+					listen for changes on the host object. The listener module will
+					read these properties, convert them into UCR variables, regenerate
+					the associated configuration files and restart the XMPP daemon if
+					needed.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Establishes a
+					<emphasis>server password change
+						hook
+					</emphasis>
+					which ensures restart of the XMPP daemon whenever
+					the host password of the given host changes. This is needed because
+					every LDAP connection uses
+					<emphasis>authenticated bind</emphasis>
+					, so every LDAP connection must be re-established using the new
+					credentials.
+				</para>
+			</listitem>
+		</itemizedlist>
+	</chapter>
+	<chapter id="config">
+		<title>Service configuration</title>
+		<para>This chapter is about configuring a host where the XMPP service
+			is installed. A basic working configuration has already been
+			established by the installation process. This section describes what
+			you can change if the default installation doesn&apos;t suit your
+			needs.
+		</para>
+		<section id="config:umc">
+			<title>
+				Host properties changeable via
+				<emphasis>Univention
+					Management Console
+				</emphasis>
+			</title>
+			<para>Currently
+				there&apos;s only one host property that can be
+				changed via the
+				<emphasis>Univention Management Console</emphasis>
+				:-
+			</para>
+			<itemizedlist>
+				<listitem>
+					<formalpara>
+						<title>XMPP domain(s)</title>
+						<para>
+							This is a
+							multivalued property that determines which XMPP domains this
+							service should be responsible for. For each of these domains, the
+							service spawns a separate instance that allows communication
+							between all users having an
+							<emphasis>XMPP ID</emphasis>
+							with
+							exactly this domain.
+							<note>
+								<para>This value does not affect
+									authentication. Authentication (in this case: permission to connect
+									at all) is always done using the UID alone, just like in all
+									other
+									services integrated into the UCS
+									system.
+								</para>
+							</note>
+						</para>
+					</formalpara>
+				</listitem>
+			</itemizedlist>
+		</section>
+		<section id="config:ucr">
+			<title>
+				Host properties changeable via
+				<emphasis>Univention
+					Configuration Registry
+				</emphasis>
+			</title>
+			<para>There
+				are configuration parameters which aren&apos;t likely to
+				be changed frequently. Those can be tweaked using the
+				<emphasis>
+					Univention Configuration Registry
+				</emphasis>
+				variables on the host
+				itself.
+			</para>
+			<para>
+				You have to log on as root on the given server. Issuing the
+				command
+				<command>ucr search plucs</command>
+				will print out all
+				related variables, their values and a short explanation.
+			</para>
+			<note>
+				<para>
+					To ensure consistent configuration across hosts, you can
+					create
+					<emphasis>UCR policies</emphasis>
+					which will be applied to
+					multiple hosts.
+				</para>
+			</note>
+			<itemizedlist>
+				<listitem>
+					<formalpara>
+						<title>General server parameters</title>
+						<para>
+							<itemizedlist>
+								<listitem>
+									<formalpara>
+										<title>plucs/autostart:
+											Automatically start the ejabberd service at system startup
+										</title>
+										<para>
+											You can disable the start of the XMPP daemon here. Normally,
+											you should not change this value because it will follow many
+											other
+											conditions:-
+											<itemizedlist>
+												<listitem>
+													<para>
+														The
+														<emphasis>XMPP
+															Enabled
+														</emphasis>
+														setting of the host object
+													</para>
+												</listitem>
+												<listitem>
+													<para>
+														The fact that at least one
+														<emphasis>XMPP
+															domain
+														</emphasis>
+														is set for this host object
+													</para>
+												</listitem>
+												<listitem>
+													<para>
+														The
+														<emphasis>autostart</emphasis>
+														value of the
+														XMPP service in the service control panel of the given
+														host.
+													</para>
+												</listitem>
+											</itemizedlist>
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/language: the language used by
+											the XMPP daemon
+										</title>
+										<para>This is the language the XMPP daemon
+											uses when talking language dependent things to clients, such as
+											welcome messages. The initial language was determined from
+											the
+											host&apos;s locale settings at install
+											time.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/restart/listener: allow restart of XMPP daemon by
+											Listener/Notifier
+										</title>
+										<para>
+											With this parameter, you can control
+											if the
+											<emphasis>Listener/Notifier</emphasis>
+											is allowed to restart
+											the XMPP daemon whenever it detects changes at the corresponding
+											host object. The default value is
+											<emphasis>true</emphasis>
+											,
+											meaning that the daemon will be restarted 15 seconds after any
+											change.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/loglevel: the log verbosity level of the XMPP
+											daemon
+										</title>
+										<para>
+											This log level relates to the XMPP daemon and
+											the underlying Erlang libraries. It ranges from 0 (no output at
+											all) to 5 (Debug). Level 3 (Info) seems to be a good starting
+											point; later on you can lower the log level as you see fit.
+											Refer
+											to
+											<ulink
+												url="http://www.process-one.net/docs/ejabberd/guide_en.html#logfiles"
+											>
+												the EjabberD documentation
+											</ulink>
+											for
+											details.
+										</para>
+									</formalpara>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>Client-related parameters</title>
+						<para>
+							<itemizedlist>
+								<listitem>
+									<formalpara>
+										<title>plucs/certfile:
+											certificate file to be presented to clients
+										</title>
+										<para>The
+											certificate file being used here is converted from the host
+											certificate which was automatically generated and deployed while
+											joining the UCS domain. If you want to provide a different
+											certificate here it must adhere to the requirements of the
+											XMPP
+											daemon: it is required in PEM format, with the private key and the
+											certificate in one file.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/tls: announce TLS availability to
+											clients
+										</title>
+										<para>
+											With this parameter set to true, the XMPP
+											daemon will announce TLS
+											(<emphasis>Transport Level Security</emphasis>)
+											availability to clients.
+											<note>
+												<para>
+													Starting with plucs 0.2-1, besides the boolean
+													<emphasis>'true'</emphasis> and <emphasis>'false'</emphasis> values,
+													this parameter is now allowed to have the value <emphasis>'required'</emphasis>
+													which will enforce the use of STARTTLS by any clients.
+												</para>
+											</note>
+										</para>
+									</formalpara>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>LDAP directory-related
+							parameters
+						</title>
+						<para>
+							<itemizedlist>
+								<listitem>
+									<formalpara>
+										<title>plucs/ldap/port: the port used to issue LDAP queries
+										</title>
+										<para>We
+											don&apos;t have to specify the host name, because the LDAP
+											host is already known to any member server, and will be
+											updated
+											accordingly when server roles change. Note: Using the default LDAP
+											ports (389 and 636) is not safe, especially if you intend to
+											install
+											<emphasis>Samba 4</emphasis>
+											as replacement for a Windows
+											Domain Controller.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/ldap/tls: controls whether or not TLS is
+											used for LDAP queries
+										</title>
+										<para>
+											Regardless of this setting, LDAP
+											queries are always done using an
+											<emphasis>authenticated
+												bind
+											</emphasis>
+											via the credentials of the machine account. This
+											setting is intended to provide an additional layer of security.
+											Note: The underlying Erlang libraries aren&apos;t able to use
+											the
+											STARTTLS feature to switch a plain text channel to TLS. This is why
+											you need to specify a LDAP port which initially listens in
+											TLS mode
+											(636 or 7636).
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/userlabel: the &apos;display name&apos; property
+											of
+											users
+										</title>
+										<para>With this parameter, you can define which LDAP
+											property of the user objects will be used by the XMPP server
+											whenever it displays a user name. Important is to ensure the given
+											property is set. Note: User objects without that property
+											will be
+											displayed nevertheless; you can&apos;t control how any given client
+											will display such users.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/grouplabel: the &apos;display name&apos;
+											property of groups
+										</title>
+										<para>With
+											this parameter, you set the
+											LDAP property of group objects which will be used to display the
+											names of XMPP groups. Groups without this property won&apos;t
+											appear in XMPP client rosters; clients usually choose a
+											fallback
+											group (
+											<emphasis>Ungrouped</emphasis>
+											etc.) to display members of
+											such groups, as if the users don&apos;t belong to any group at
+											all.
+										</para>
+									</formalpara>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>Parameters to control the HTTP request handler</title>
+						<para>
+							The <emphasis>HTTP request handler</emphasis> of the EJabberD daemon is a generic HTTP server listening at port 5280 of your host.
+							Refer to <ulink url="http://wiki.xmpp.org/web/Ejabberd_bosh_module">the XMPP wiki</ulink> for a description.
+							Our integration only uses the functionality of tunneling BOSH
+							requests (see <ulink url="http://xmpp.org/about-xmpp/technology-overview/bosh/">the XMPP documentation</ulink> for details).
+							<note>
+								<para>The request handler is configured to listen on 127.0.0.1:5280 only. JavaScript clients must nevertheless establish
+									their BOSH connection into the same namespace where they were loaded from (usually http://yourhost:80 or :443), so there's
+									no point in exposing the port 5280 to the public.
+								</para>
+							</note>
+							Parameters are:-
+							<itemizedlist>
+								<listitem>
+									<formalpara>
+										<title>plucs/http/proxy: switches on HTTP proxy</title>
+										<para>
+											Switch on HTTP proxy in Apache configuration. This enables the /http-bind/ and /http-poll/ URLs into the normal
+											namespace of your server. Whenever you change this setting you have to reload your Apache web server.
+											With this parameter set to <constant>false</constant>, the HTTP request handler will be entirely invisible to the outside.
+											The configured URLs are equally mapped into the http:// and https:// schemes, so if your client can
+											speak BOSH over HTTPS you can make use of this.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/http/bind: switch on <emphasis>http bind</emphasis> function</title>
+										<para>
+											This enables the <emphasis>http bind</emphasis> functionality of the HTTP request handler.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/http/bind/url: define the URL base for the <emphasis>http bind</emphasis> request handler</title>
+										<para>
+											You can set the base URL where the <emphasis>http bind</emphasis> handler will serve requests. The URL is forced to match as
+											an absolute URL. The default value is set to <constant>/http-bind/</constant> just like most of the clients require. A reload
+											of your Apache server is required when you change this parameter.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/http/poll: switch on <emphasis>http poll</emphasis> function</title>
+										<para>
+											This enables the <emphasis>http poll</emphasis> functionality of the HTTP request handler.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/http/poll/url: define the URL base for the <emphasis>http poll</emphasis> request handler</title>
+										<para>
+											You can set the base URL where the <emphasis>http poll</emphasis> handler will serve requests. The URL is forced to match as
+											an absolute URL. The default value is set to <constant>/http-poll/</constant> just like most of the clients require. A reload
+											of your Apache server is required when you change this parameter.
+										</para>
+									</formalpara>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>Parameters to control server-to-server
+							(S2S) connections
+						</title>
+						<para>
+							<itemizedlist>
+								<listitem>
+									<formalpara>
+										<title>plucs/s2s: enables server-to-server communication
+										</title>
+										<para>This allows the communication of your server to other
+											XMPP
+											servers. Technically, it enables your server to listen on port
+											5269, the normal server-to-server communication
+											port.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/s2s/certfile: the certificate to use for
+											server-to-server communication
+										</title>
+										<para>Initially this is set
+											to the same certificate file the server will use for client
+											communications. TLS availability is always announced on S2S
+											connections.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/s2s/tls: deny/allow/enforce TLS usage on S2S connections</title>
+										<para>
+											This allows to control the usage of TLS encryption on S2S connections. Allowed values are:-
+											<itemizedlist>
+												<listitem>
+													<formalpara>
+														<title>false:</title>
+														<para>
+															Don't allow or advertise TLS at all.
+														</para>
+													</formalpara>
+												</listitem>
+												<listitem>
+													<formalpara>
+														<title>optional:</title>
+														<para>
+															Try TLS first, but allow fallback to unencrypted.
+														</para>
+													</formalpara>
+												</listitem>
+												<listitem>
+													<formalpara>
+														<title>required:</title>
+														<para>
+															Always use TLS, refuse connections that don't offer encryption.
+														</para>
+													</formalpara>
+												</listitem>
+												<listitem>
+													<formalpara>
+														<title>required_trusted:</title>
+														<para>
+															Act like <emphasis>required</emphasis>, but additionally enforce
+															peer certificates to be known and trusted.
+														</para>
+													</formalpara>
+												</listitem>
+											</itemizedlist>
+											<note>
+												<para>
+													To keep backwards compatibility with plucs before 0.2-1, the value
+													'<emphasis>true</emphasis>' continues to be valid, and will automatically
+													be mapped to '<emphasis>optional</emphasis>'.
+												</para>
+											</note>
+											<note>
+												<para>
+													The current eJabberD version (2.1.10) does not yet understand
+													detailed TLS options
+													(<emphasis>s2s_transport_options</emphasis>
+													and
+													<emphasis>s2s_ciphers</emphasis>)
+													as they are already implemented in the latest upstream
+													version (14.12). At least, the current version resolves
+													<ulink url="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=724992">
+													Debian Bug #724992</ulink> which forbids
+													SSL v2.
+												</para>
+											</note>
+										</para>
+									</formalpara>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+			</itemizedlist>
+		</section>
+		<section id="config:more">
+			<title>Additional configuration</title>
+			<para>
+				You may want to customize the configuration of your XMPP
+				server(s) beyond the normal settings. This section covers some of
+				the configuration areas where customization can make sense. Note
+				that these tasks apply to any kind of XMPP service. Your first
+				reference should always be
+				<ulink url="http://www.process-one.net/docs/ejabberd/guide_en.html">
+					the eJabberD documentation
+				</ulink>
+				and the other documents found
+				there in the
+				<emphasis>doc</emphasis>
+				directory.
+			</para>
+			<itemizedlist>
+				<listitem>
+					<formalpara>
+						<title>Use a publicly-recognized
+							certificate
+						</title>
+						<para>This
+							can make sense if you&apos;re
+							planning to allow Server-to-server connections, or if you intend to
+							open your XMPP service to clients outside of your corporate
+							network. No matter which of the certificates (client or s2s, or
+							both) you want to replace, you always have to meet the requirements
+							of the XMPP daemon:
+							<itemizedlist>
+								<listitem>
+									<para>
+										The certificate is
+										required to be in the
+										<emphasis>PEM format</emphasis>
+										.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										The certificate is required to
+										contain both the
+										<emphasis>private key</emphasis>
+										and the
+										<emphasis>
+											public certificate
+										</emphasis>
+										. If the certificate in question is
+										not directly issued by the root CA you have to include the
+										certificates of intermediate CAs too.
+										<note>
+											<para>You can also
+												provide two files, &lt;filename&gt;.pem (containing one or more
+												certificates) and &lt;filename&gt;.key (containing the
+												private
+												key). The configuration directive must refer to the PEM file in
+												this case.
+											</para>
+										</note>
+									</para>
+								</listitem>
+							</itemizedlist>
+							The whole
+							process has been described at many places over the net. As an
+							example, please refer to
+							<ulink
+								url="http://wiki.linuxwall.info/doku.php/en:ressources:articles:ejabberd#tls_listener"
+							>
+								the LinuxWall Wiki
+							</ulink>
+							or
+							<ulink
+								url="http://hyperstruct.net/2007/06/20/installing-the-startcom-ssl-certificate-in-ejabberd/"
+							>
+								this blog entry
+							</ulink>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>Support autodetection</title>
+						<para>For
+							client computers in your domain, you can arrange for deployment
+							of
+							an XMPP client on the users&apos; desktop, along with a
+							configuration that matches your server setup. But if you leave the
+							choice of clients to the users you should help clients to get
+							their
+							configuration automatically.
+							<itemizedlist>
+								<listitem id="srvrecord" xreflabel="Service Records">
+									<para>
+										Clients
+										can ask the DNS server of the XMPP domain about the name or
+										address
+										of the host serving XMPP for that domain. This is accomplished
+										by a
+										so-called
+										<emphasis>SRV record</emphasis>
+										. The record in question
+										should look like this:-
+										<programlisting>_xmpp-client._tcp.yourdomain.tld. 86400 IN	SRV	5 0 5222 xmpphost.yourdomain.tld</programlisting>
+										<note id="owndns">
+											<para>
+												If the domain in question is managed by a
+												UCS server you can easily add the corresponding
+												<emphasis>service
+													record
+												</emphasis>
+												to the DNS. Refer to
+												<ulink
+													url="http://docs.univention.de/manual-3.2.html#ip-config:Service_records"
+												>
+													the UCS documentation
+												</ulink>
+												for details.
+											</para>
+										</note>
+										Refer to
+										<ulink url="http://wiki.xmpp.org/web/SRV_Records">the XMPP
+											Wiki
+										</ulink>
+										about the full amount of SRV records related to
+										XMPP.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>Secure LDAP connections</title>
+						<para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										The LDAP server of an UCS domain
+										always supports TLS in the first place as well as STARTTLS. For
+										backwards compatibility, it keeps listening on unsecured
+										ports, but
+										every application issuing LDAP queries is strongly urged not to use
+										unsecured connections, be it inside of your organization or to
+										the
+										outside world. Your XMPP daemon is able to use TLS (not STARTTLS),
+										so you should set
+										<emphasis>plucs/ldap/tls</emphasis>
+										to true and
+										<emphasis>plucs/ldap/port</emphasis>
+										to 7636.
+										<note>
+											<para>
+												For future
+												compatibility, you should avoid using port 636 here because this
+												would break your ability to install and use
+												<emphasis>Samba
+													4
+												</emphasis>
+												as a replacement for a Windows Domain
+												Controller.
+											</para>
+										</note>
+									</para>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara id="config:more:client_tls" xreflabel="Securing client connections">
+						<title>Secure client connections</title>
+						<para>
+							<itemizedlist>
+								<listitem>
+									<para>Give your users some kind of confidence about the
+										security.
+										It is a good idea to ensure the domain CA certificate to be
+										enrolled onto all client computers. That way, the users&apos;
+										XMPP
+										clients should never complain about self-signed or unknown
+										certificates on first
+										connect.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+				<listitem>
+					<formalpara>
+						<title>Open your XMPP service to the
+							public
+						</title>
+						<para>
+							You may want to allow your XMPP server to be
+							usable from the public internet
+							<itemizedlist>
+								<listitem>
+									<para>Allow
+										clients outside of your corporate network to connect to your XMPP
+										server: you have to establish port forwarding for TCP port
+										5222 at
+										your corporate firewall. This step can be omitted if your XMPP
+										server is already exposed (hosted publicly, or configured as
+										exposed DMZ host).
+									</para>
+								</listitem>
+								<listitem>
+									<para>Allow servers
+										of other XMPP domains to contact your server, for cross-domain
+										communication: you have to ensure that TCP port 5269 is
+										reachable
+										from the public internet.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										Arrange
+										for the so-called
+										<emphasis>SRV records</emphasis>
+										(see
+										<xref linkend="srvrecord" />
+										) to be visible in the public DNS of
+										your domain. If you have established port forwarding (see above)
+										the service records have to point to the IP of your
+										firewall.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</para>
+					</formalpara>
+				</listitem>
+			</itemizedlist>
+		</section>
+	</chapter>
+	<chapter id="administration">
+		<title>Administration</title>
+		<para>This chapter describes the daily administration tasks you may
+			have to do.
+		</para>
+		<section id="admin:user">
+			<title>User administration</title>
+			<para>
+				Users have to be enabled individually for XMPP. Besides being
+				enabled, the user must be assigned to one of the hosted
+				<emphasis>
+					XMPP domains
+				</emphasis>
+				in your organization. The current model
+				enforces that a given user can only belong to one XMPP domain.
+			</para>
+			<para>The XMPP domain you enter here is not validated. It means you
+				can even assign users to a notexistant domain, and add the domain to
+				any of your XMPP hosts later.
+			</para>
+			<note>
+				<para>
+					You have to choose which property of users is to be
+					displayed. The installer chooses the
+					<command>gecos</command>
+					field
+					which belongs to the
+					<emphasis>POSIX account</emphasis>
+					object
+					class of users. You can change this by setting the value of the UCR
+					variable
+					<command>plucs/userlabel</command>
+				</para>
+			</note>
+			<note>
+				<para>
+					To ease the creation of directory objects with a predefined
+					set of properties, Univention Corporate Server provides the concept
+					of
+					<emphasis>templates</emphasis>
+					. Refer to the
+					<ulink url="http://docs.univention.de/manual-3.2.html#users:templates">
+						Manual for users and administrators
+					</ulink>
+					for details about user
+					templates.
+				</para>
+			</note>
+			<section>
+				<title>Default values</title>
+				<para>
+					To ease the daily work of the administrator, the values of 
+					<emphasis>XMPP enabled</emphasis> and <emphasis>XMPP domain</emphasis>
+					now have sensible default values. New users created from now on will be XMPP-enabled by default,
+					and will be assigned to the primary DNS domain. The default domain is furthermore changed
+					whenever there's only one XMPP domain hosted in your UCS domain. As always, you can change
+					these defaults whenever you wish:
+					<programlisting>udm settings/extended_attribute modify \
+	--dn="cn=UniventionXMPP-User-Domain,cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" \
+	--set default='any.domain.name'</programlisting>
+					and
+					<programlisting>udm settings/extended_attribute modify \
+	--dn="cn=UniventionXMPP-User-Enabled,cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" \
+	--set default='TRUE'</programlisting>
+					<note>
+						<para>
+							The boolean value for the 'enabled' attribute must be in uppercase,
+							only 'TRUE' and 'FALSE' are accepted.
+						</para>
+					</note>
+				</para>
+			</section>
+		</section>
+		<section id="admin:group">
+			<title>Group administration</title>
+			<para>
+				The XMPP daemon has a feature called
+				<emphasis>shared
+					roster
+				</emphasis>,
+				that can maintain groups and users to appear in
+				the users&apos; contact roster. This means that users don&apos;t
+				have to manually confirm each other for inclusion into their
+				respective roster (the so-called
+				<emphasis>authorization</emphasis>
+				). You (the administrator) can assign users to groups, and therefore
+				enable groups to appear in the roster whenever one or more group
+				members are online.
+			</para>
+			<note>
+				<para>
+					It is necessary to choose which property of any given group
+					is to be used as the
+					<emphasis>group name</emphasis>
+					. This is done
+					by setting the UCR variable
+					<command>plucs/userlabel</command>
+					to
+					the desired property. The default setting (set on first install of
+					PLUCS on any given host) is the
+					<command>CN</command>
+					. If you
+					forget to set that property for a group, the group would be
+					presented as having no name. XMPP clients usually compensate for
+					this by assigning a generic name, usually &quot;Buddies&quot; or
+					&quot;Ungrouped&quot;.
+				</para>
+			</note>
+			<para>Some remarks to these groups:-</para>
+			<itemizedlist>
+				<listitem>
+					<para>The permission to use XMPP for any given user doesn&apos;t
+						depend on a group membership. This means you can&apos;t switch off
+						a group of users by simply disabling a group.
+					</para>
+				</listitem>
+				<listitem>
+					<para>Any XMPP user can be member of any number of groups. It is
+						up to the individual user-client as to how users that are members
+						of multiple groups are to be displayed.
+					</para>
+				</listitem>
+				<listitem>
+					<para>Groups
+						in this sense can&apos;t be used to limit which users
+						are visible to other users. The visibility scope is always the
+						<emphasis>XMPP domain</emphasis>
+						of the given user.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+		<section id="admin:client">
+			<title>Client administration</title>
+			<para>It depends heavily on the overall design of your
+				domain/organization. The list here refers you to sources of further
+				information.
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>If
+						you&apos;re deploying the
+						<emphasis>Univention Corporate
+							Client
+						</emphasis>
+						you have some possibilities to customize the
+						XMPP client too. Read the
+						<ulink url="http://docs.univention.de/ucc-manual-1.0.html">UCC
+							documentation
+						</ulink>
+						for details.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						For other deployment scenarios you have to find out yourself
+						what applies to you. A comprehensive list of client applications
+						can be found at
+						<ulink url="http://wiki.xmpp.org/web/Clients">the
+							XMPP wiki
+						</ulink>
+						.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+	</chapter>
+	<chapter id="support">
+		<title>Support offerings</title>
+		<para>
+			If you need help installing or administering PLUCS don&apos;t
+			hesitate to ask us. With your feedback, you actively contribute to
+			fixes and enhancements.
+			<itemizedlist>
+				<listitem>
+					<para>
+						For professional help based on our support plans, get in
+						touch with the sales department using our
+						<ulink url="https://www.it25.de/de/kontakt/">contact form</ulink>
+						. This is also the place to ask for enhancements or special
+						functionalities.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Even without any support contract you may ask your questions
+						at the
+						<ulink url="http://forum.univention.de/viewforum.php?f=67">
+							Univention Forum
+						</ulink>
+						. Our staff is active there as time
+						permits. We&apos;ll try to anwer your questions as soon as
+						possible.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</para>
+		<para>If you need help with the installation or administration of
+			PLUCS, please don&apos;t hesitate to contact us. We also greatly
+			appreciate all forms of feedback, with which you can actively
+			contribute to upcoming fixes and positive enhancements.
+		</para>
+		<para>
+			<itemizedlist>
+				<listitem>
+					<para>
+						For support on a cooperate level please contact our sales
+						department via the
+						<ulink url="https://www.it25.de/de/kontakt/">contact form</ulink>
+						. Here you may also inquire about
+						future enhancements or custom features designed just for your
+						companies needs.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						You can also find us in the
+						<ulink url="http://forum.univention.de/viewforum.php?f=67">
+							Univention Forum
+						</ulink>
+						, our staff ist
+						as active there as time permits and we will do our best to answer
+						your questions in a timely manner.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</para>
+	</chapter>
+</book>

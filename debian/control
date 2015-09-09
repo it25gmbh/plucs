@@ -1,0 +1,45 @@
+Source: plucs
+Section: net
+Maintainer: it25 GmbH <packages@it25.de>
+Build-Depends: debhelper (>> 7),
+  univention-config-dev,
+  ucslint,
+  docbook-xml,
+  docbook-utils
+Standards-Version: 3.8.2
+
+Package: plucs
+Architecture: all
+Depends: ${misc:Depends},
+ univention-directory-manager-tools (>> 7.0.147),
+ univention-join (>> 5.0.20-1.436),
+ shell-univention-lib (>> 2.0.17-1.125),
+ univention-ssl,
+ ejabberd (>= 2.1.6)
+Breaks: univention-ldap-server (<< 9.0.20-1.580.201303211526),
+ plucs-msrl
+Description: UCS integration of XMPP (Jabber) service
+ This package contains UDM extensions for integrating
+ an XMPP service.
+ .
+ It depends on Univention Corporate Server (UCS), an
+ integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: http://www.univention.de/
+
+Package: plucs-schema
+Architecture: all
+Depends: ${misc:Depends},
+ univention-directory-manager-tools (>> 7.0.147),
+ univention-join (>> 5.0.20-1.436),
+ shell-univention-lib (>> 2.0.17-1.125)
+Breaks: univention-ldap-server (<< 9.0.20-1.580.201303211526)
+Description: UCS schema package for univention-xmpp
+ This package contains additional LDAP schema
+ defining extension for XMPP management.
+ .
+ It depends on Univention Corporate Server (UCS), an
+ integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: http://www.univention.de/
+

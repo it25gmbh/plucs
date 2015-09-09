@@ -1,0 +1,109 @@
+# Namespace 'plucs/*' meant for the pure daemon /etc/init.d/plucs which
+# replaces the (diverted) /etc/init.d/ejabberd.
+[plucs/autostart]
+Categories=Net
+Description[de]=Automatischer Start des EJabberd-Dienstes beim Systemstart
+Description[en]=Automatically start the ejabberd service at system startup
+Type=bool
+
+[plucs/loglevel]
+Categories=Net
+Type=int
+Description[de]=Loglevel für ejabberd
+Description[en]=log level for ejabberd
+
+[plucs/tls]
+Categories=Net
+Type=bool
+Description[de]=Bietet Clients STARTTLS an
+Description[en]=Announces STARTTLS support to clients
+
+[plucs/certfile]
+Categories=Net
+Type=str
+Description[de]=Zertifikat, das den Clients präsentiert wird
+Description[en]=certificate file to be presented to clients
+
+[plucs/http/bind]
+Categories=Net
+Type=bool
+Description[de]=HTTP Bind (BOSH) Dienst auf Port 5280 anschalten
+Description[en]=Allow HTTP Bind (BOSH) service on port 5280
+
+[plucs/http/poll]
+Categories=Net
+Type=bool
+Description[de]=HTTP Poll (BOSH) Dienst auf Port 5280 anschalten
+Description[en]=Allow HTTP Poll (BOSH) service on port 5280
+
+[plucs/http/proxy]
+Categories=Net
+Type=str
+Description[de]=HTTP Proxy für JavaScript BOSH Clients anschalten
+Description[en]=establish HTTP proxy for JavaScript BOSH clients
+
+[plucs/http/bind/url]
+Categories=Net
+Type=str
+Description[de]=URL, auf dem der HTTP BIND Dienst verfügbar gemacht wird
+Description[en]=URL where the HTTP BIND service is made available
+
+[plucs/http/poll/url]
+Categories=Net
+Type=str
+Description[de]=URL, auf dem der HTTP POLL Dienst verfügbar gemacht wird
+Description[en]=URL where the HTTP POLL service is made available
+
+[plucs/userlabel]
+Categories=Net
+Type=str
+Description[de]=LDAP-Attribut, das für Nutzer im Roster angezeigt wird
+Description[en]=LDAP attribute used as display name for users
+
+[plucs/grouplabel]
+Categories=Net
+Type=str
+Description[de]=LDAP-Attribut, das für Gruppen im Roster angezeigt wird
+Description[en]=LDAP attribute used as display name for groups
+
+[plucs/ldap/tls]
+Categories=Net
+Type=bool
+Description[de]=Nutzt TLS für LDAP Abfragen (geht nicht auf Port 7389)
+Description[en]=use TLS for LDAP connection (doesn't work with port 7389)
+
+[plucs/ldap/port]
+Categories=Net
+Type=bool
+Description[de]=Port auf dem der LDAP Master angesprochen wird
+Description[en]=port to use for ldap queries
+
+[plucs/s2s]
+Categories=Net
+Type=bool
+Description[de]=Server-Server Verbindungen zulassen
+Description[en]=allow server-to-server connections
+
+[plucs/s2s/tls]
+Categories=Net
+Type=str
+Description[de]=STARTTLS für Server-Server Verbindungen anbieten oder erzwingen
+Description[en]=Advertise or force STARTTLS for server-to-server connections
+
+[plucs/s2s/certfile]
+Categories=Net
+Type=str
+Description[de]=Zertifikatsdatei für Server-Server Verbindungen
+Description[en]=certificate file for server-to-server connections
+
+# Namespace 'xmpp/*' meant for XMPP-related properties which are set
+# in UDM (LDAP properties named 'univention-xmpp-*') and brought to
+# us by the Notifier/Listener mechanism.
+
+[xmpp/domains]
+Categories=Net
+Description[de]=Liste der Domänen, die durch diesen Server gehostet werden
+Description[en]=list of domains being served by this host
+# NOTE this is a whitespace-delimited list
+Type=str
+

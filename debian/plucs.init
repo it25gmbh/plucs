@@ -1,0 +1,219 @@
+#! /bin/sh
+#
+# PLUCS  init script
+#
+# Copyright 2013-2015 it25 GmbH
+#
+# http://www.it25.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <http://www.gnu.org/licenses/>.
+
+#
+# ejabberd        Start/stop ejabberd server
+#
+
+### BEGIN INIT INFO
+# Provides:          ejabberd
+# Required-Start:    $remote_fs $network $named $time
+# Required-Stop:     $remote_fs $network $named $time
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts ejabberd jabber server
+# Description:       Starts ejabberd jabber server, an XMPP
+#                    compliant server written in Erlang.
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+EJABBERD=/usr/sbin/ejabberd
+EJABBERDCTL=/usr/sbin/ejabberdctl
+EJABBERDRUN=/var/run/ejabberd
+EJABBERDUSER=ejabberd
+NAME=ejabberd
+
+test -f $EJABBERD || exit 0
+test -f $EJABBERDCTL || exit 0
+
+# Include ejabberd defaults if available
+if [ -f /etc/default/plucs ] ; then
+    . /etc/default/plucs
+fi
+
+ctl()
+{
+    action="$1"
+    su $EJABBERDUSER -c "$EJABBERDCTL $action" >/dev/null
+}
+
+mkrundir()
+{
+    if [ ! -d $EJABBERDRUN ]; then
+        mkdir -p $EJABBERDRUN
+        if [ $? -ne 0 ]; then
+            echo -n " failed"
+            return
+        fi
+        chmod 0755 $EJABBERDRUN
+        chown ejabberd:ejabberd $EJABBERDRUN
+    fi
+}
+
+mkcertdir()
+{
+	if [ ! -d $EJABBERDRUN/certs ] ; then
+		mkdir -p $EJABBERDRUN/certs
+		if [ $? -ne 0 ]; then
+			echo -n " failed"
+			return
+		fi
+		chmod 0500 $EJABBERDRUN/certs
+		chown ejabberd:ejabberd $EJABBERDRUN/certs
+	fi
+	
+	# construct the host certificate
+	local MY_HOST=$(ucr get hostname)
+	local MY_DOM=$(ucr get domainname)
+	(
+		cat /etc/univention/ssl/${MY_HOST}.${MY_DOM}/private.key
+		grep -A100 -F 'BEGIN CERTIFICATE' /etc/univention/ssl/${MY_HOST}.${MY_DOM}/cert.pem
+	)>$EJABBERDRUN/certs/ejabberd.pem
+	# copy CA certificate (needed for LDAP with TLS)
+	cp /etc/univention/ssl/ucsCA/CAcert.pem $EJABBERDRUN/certs/cacert.pem
+	if [ $? -ne 0 ]; then
+		echo -n " failed"
+		return
+	fi
+	chmod 0400 $EJABBERDRUN/certs/*
+	chown ejabberd:ejabberd $EJABBERDRUN/certs/*
+}
+
+start()
+{
+	# While we don't have a listener (yet) it is not guaranteed that
+	# /etc/default/ejabberd was regenerated at least once from its template.
+	# Check if the RUN_EJABBERD variabe exists, and don't do anything if not.
+	if [ -z "${RUN_EJABBERD}" ] ; then
+		echo "Service not configured yet." >&2
+		return
+	fi
+	
+	# only the 'start' command is inhibited when the RUN_EJABBERD variable
+	# is not true. That way, we can always ask for status or shut down the
+	# service, even if UCR variables forbid starting it.
+	if ! $RUN_EJABBERD ; then
+		echo "Not configured to run automatically." >&2
+		return
+	fi
+	
+    mkrundir
+    mkcertdir
+
+    cd /var/lib/ejabberd
+    su $EJABBERDUSER -c "$EJABBERD -noshell -detached"
+
+    cnt=0
+    while ! (ctl status || test $? = 1) ; do
+	echo -n .
+	cnt=`expr $cnt + 1`
+	if [ $cnt -ge 60 ] ; then
+	    echo -n " failed"
+	    break
+	fi
+	sleep 1
+    done
+}
+
+stop()
+{
+    if ctl stop ; then
+	cnt=0
+	sleep 1
+	while ctl status || test $? = 1 ; do
+	    echo -n .
+	    cnt=`expr $cnt + 1`
+	    if [ $cnt -ge 60 ] ; then
+		echo -n " failed"
+		break
+	    fi
+	    sleep 1
+	done
+    else
+	echo -n " failed"
+    fi
+}
+
+live()
+{
+    mkrundir
+
+    echo '*******************************************************'
+    echo '* To quit, press Ctrl-g then enter q and press Return *'
+    echo '*******************************************************'
+    echo
+
+    cd /var/lib/ejabberd
+    exec su $EJABBERDUSER -c "$EJABBERD"
+}
+
+case "$1" in
+    start)
+	echo -n "Starting jabber server: $NAME"
+	if ctl status ; then
+	    echo -n " already running"
+	else
+	    start
+	fi
+    ;;
+    stop)
+	echo -n "Stopping jabber server: $NAME"
+	if ctl status ; then
+	    stop
+	else
+	    echo -n " already stopped"
+	fi
+    ;;
+    restart|force-reload)
+	echo -n "Restarting jabber server: $NAME"
+	if ctl status ; then
+	    stop
+	    start
+	else
+	    echo -n " is not running. Starting $NAME"
+	    start
+	fi
+    ;;
+    live)
+	if ctl status ; then
+	    echo -n "ejabberd is already running"
+	else
+	    live
+	fi
+    ;;
+    *)
+	echo "Usage: $0 {start|stop|restart|force-reload|live}" >&2
+	exit 1
+    ;;
+esac
+
+if [ $? -eq 0 ]; then
+    echo .
+else
+    echo " failed."
+fi
+
+exit 0
+

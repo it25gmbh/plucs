@@ -1,0 +1,60 @@
+plucs (0.2-2) UNRELEASED; urgency=low
+
+  * Fixes Bug #2900: Default domain is not set when not running on DC
+    master
+  * Fixes Bug #3037: Fetch LDAP hosts from different variables.
+
+ -- Frank Greif <fg@it25.de>  Thu, 30 Apr 2015 10:54:53 +0200
+
+plucs (0.2-1) unstable; urgency=low
+
+  * Closes #2846: Missing executable bit on server password change hook
+    script.
+  * Closes #2854: Added capablility plucs/tls=required to enforce TLS on
+    client connections.
+  * Closes #2854: added options "optional", "required" and
+    "required_trusted" to the plucs/s2s/tls setting.
+
+ -- Frank Greif <fg@it25.de>  Mon, 05 Jan 2015 09:28:13 +0100
+
+plucs (0.2-0) unstable; urgency=low
+
+  * Closes #2567: Compatibility with UCS 4.x: new eJabberD version, no
+    need for plucs-msrl (msrl module is now a mainstream module shipped
+    with eJabberD)
+  * Closes #2527: Default of 'xmpp enabled' for new users is now 'true'
+  * Closes #2527: Default of 'xmpp domain' for new users will now be
+    changed to the first (or only) XMPP domain hosted in this UCS
+    domain.
+
+ -- Frank Greif <fg@it25.de>  Sun, 02 Nov 2014 18:42:24 +0100
+
+plucs (0.1-3) unstable; urgency=low
+
+  * Closes #2161: HTTP interface for BOSH-capable clients.
+  * Closes #2365: Wrong default value for STARTTLS on S2S listener.
+
+ -- Frank Greif <fg@it25.de>  Thu, 24 Apr 2014 09:20:22 +0200
+
+plucs (0.1-2) unstable; urgency=low
+
+  * Closes #2274: Missing exec bit on server password change hook
+  * Closes #2279: Wrong permissions and ownership for ejabberd.cfg
+  * Closes #2257: Documentation.
+
+ -- Frank Greif <fg@it25.de>  Mon, 03 Feb 2014 15:27:35 +0100 
+
+plucs (0.1-1) unstable; urgency=low
+
+  * Initial Release.
+  * Closes #2120: compiled and packaged mod_shared_roster_ldap.
+  * Closes #2078: LDAP schema extension for PLUCS, including UDM
+    extension.
+  * Closes #2119: UCR template for eJabberd.
+  * Closes #2079: DEB packaging.
+  * Closes #2149: AppCenter packaging.
+  * Closes #2194: certificate file for c2s now configurable by UCR.
+  * Closes #2225: Join script did not set default domain on single DC
+    Master
+
+ -- Frank Greif <fg@it25.de>  Mon, 02 Dec 2013 15:23:44 +0100

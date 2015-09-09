@@ -1,0 +1,199 @@
+#! /bin/sh
+#
+# PLUCS  join script
+#
+# Copyright 2013-2014 it25 GmbH
+#
+# http://www.it25.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <http://www.gnu.org/licenses/>.
+
+VERSION=2
+
+. /usr/share/univention-lib/base.sh
+. /usr/share/univention-lib/ldap.sh
+. /usr/share/univention-join/joinscripthelper.lib
+joinscript_init
+
+eval "$(univention-config-registry shell)"
+
+TAB_NAME_EN='Instant Messaging (XMPP)'
+TAB_NAME_DE='Sofortnachrichten (XMPP)'
+
+# Container 'xmpp' als Behaelter fuer alle XMPP-bezogenen Attribute
+univention-directory-manager container/cn create "$@" --ignore_exists \
+		--position "cn=custom attributes,cn=univention,$ldap_base" \
+		--set name=xmpp || die
+
+# user -> univentionXmppEnabled
+univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
+	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" --set module="users/user" \
+	--set ldapMapping='xmppEnabled' \
+	--set objectClass='univentionXMPPAccount' \
+	--set name='UniventionXMPP-User-Enabled' \
+	--set shortDescription='XMPP enabled' \
+	--set longDescription='Is this user allowed to use XMPP' \
+	--set translationShortDescription='"de_DE" "XMPP erlaubt"' \
+	--set translationLongDescription='"de_DE" "Darf dieser Nutzer XMPP benutzen"' \
+	--set tabName="${TAB_NAME_EN}" \
+	--set translationTabName="\"de_DE\" \"${TAB_NAME_DE}\"" \
+	--set overwriteTab='0' \
+	--set valueRequired='0' \
+	--set CLIName='xmppEnabled' \
+	--set syntax='TrueFalseUp' \
+	--set tabAdvanced='1' \
+	--set tabPosition='1' \
+	--set mayChange='1' \
+	--set multivalue='0' \
+	--set deleteObjectClass='1' \
+	--set overwritePosition='0' \
+	--set doNotSearch='0' \
+	--set default='TRUE' \
+	--set hook='None' || die
+	
+# user -> domain (right part of JID): uses previous syntax definition
+univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
+	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" --set module="users/user" \
+	--set ldapMapping='xmppDomain' \
+	--set objectClass='univentionXMPPAccount' \
+	--set name='UniventionXMPP-User-Domain' \
+	--set shortDescription='Domain' \
+	--set longDescription='The domain part of the JID' \
+	--set translationShortDescription='"de_DE" "Domäne"' \
+	--set translationLongDescription='"de_DE" "Domänen-Teil der JabberID"' \
+	--set tabName="${TAB_NAME_EN}" \
+	--set translationTabName="\"de_DE\" \"${TAB_NAME_DE}\"" \
+	--set overwriteTab='0' \
+	--set valueRequired='0' \
+	--set CLIName='xmppDomain' \
+	--set syntax='string' \
+	--set tabAdvanced='1' \
+	--set groupName='Address' \
+	--set translationGroupName='"de_DE" "Adresse"' \
+	--set tabPosition='2' \
+	--set mayChange='1' \
+	--set multivalue='0' \
+	--set deleteObjectClass='1' \
+	--set overwritePosition='0' \
+	--set doNotSearch='0' \
+	--set hook='None' || die
+
+# group -> XMPP enabled
+univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
+	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" --set module="groups/group" \
+	--set ldapMapping='xmppEnabled' \
+	--set objectClass='univentionXMPPGroup' \
+	--set name='UniventionXMPP-Group-Enabled' \
+	--set shortDescription='XMPP enabled' \
+	--set longDescription='Group allowed to appear in the XMPP roster' \
+	--set translationShortDescription='"de_DE" "XMPP erlaubt"' \
+	--set translationLongDescription='"de_DE" "Schaltet an, daß die Gruppe im XMPP Roster erscheint"' \
+	--set tabName="${TAB_NAME_EN}" \
+	--set translationTabName="\"de_DE\" \"${TAB_NAME_DE}\"" \
+	--set overwriteTab='0' \
+	--set valueRequired='0' \
+	--set CLIName='xmppEnabled' \
+	--set syntax='TrueFalseUp' \
+	--set tabAdvanced='1' \
+	--set mayChange='1' \
+	--set multivalue='0' \
+	--set deleteObjectClass='1' \
+	--set tabPosition='1' \
+	--set overwritePosition='0' \
+	--set doNotSearch='0' \
+	--set hook='None' || die
+	
+# host -> list of served XMPP domains
+univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
+	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" \
+	--set module="computers/domaincontroller_master" \
+	--set module="computers/domaincontroller_slave" \
+	--set module="computers/domaincontroller_backup" \
+	--set module="computers/memberserver" \
+	--set ldapMapping='xmppDomains' \
+	--set objectClass='univentionXMPPHost' \
+	--set name='UniventionXMPP-Host-Domains' \
+	--set shortDescription='Domains' \
+	--set longDescription='The XMPP domains hosted on this server' \
+	--set translationShortDescription='"de_DE" "Domänen"' \
+	--set translationLongDescription='"de_DE" "Die XMPP Domänen, die auf diesem Server gehostet sind"' \
+	--set tabName="${TAB_NAME_EN}" \
+	--set translationTabName="\"de_DE\" \"${TAB_NAME_DE}\"" \
+	--set overwriteTab='0' \
+	--set valueRequired='0' \
+	--set CLIName='xmppDomains' \
+	--set syntax='string' \
+	--set tabAdvanced='1' \
+	--set mayChange='1' \
+	--set multivalue='1' \
+	--set deleteObjectClass='1' \
+	--set tabPosition='1' \
+	--set overwritePosition='0' \
+	--set doNotSearch='0' \
+	--set hook='None' || die
+
+stop_udm_cli_server
+
+# If we're the first XMPP service in the domain then add the FQDN of our
+# domain to the 'xmppDomains' property of our host object. But we avoid this
+# if we find a previously set xmppDomains property (but we warn the user
+# about it)
+
+SERVICE='XMPP'
+
+if ucs_isServiceUnused "${SERVICE}" "$@"; then
+	eval "$(ucr shell)"
+	DOMAINS=
+	for role in domaincontroller_master domaincontroller_backup domaincontroller_slave memberserver; do
+		TMPDOM=`udm computers/${role} list --dn "${ldap_hostdn}" "$@" | \
+			awk '/^xmppDomains: / { print substr($0,14)}' | \
+			grep -vi 'None'`
+		if [ -n "${TMPDOM}" ] ; then
+			DOMAINS="${DOMAINS} ${TMPDOM}"
+		fi
+	done
+	NODOMAIN=false
+	if [ -z "${DOMAINS}" ] ; then
+		NODOMAIN=true
+	fi
+	if ${NODOMAIN} ; then
+		echo "Setting default XMPP domain to '${domainname}'"
+		# leave join script in state 'to be executed' if this fails. Needed to circumvent parallel
+		# install algorithm of appcenter on a DC Master
+		if ! udm computers/${server_role} modify --dn "${ldap_hostdn}" "$@" --set xmppDomains=${domainname} ; then
+			RET=$?
+			echo "WARNING: Could not set default XMPP domain."
+			echo "WARNING: This is most probably caused by missing LDAP schema definitions."
+			echo "WARNING: Please install package 'plucs-schema' on DC and rerun this script."
+			exit ${RET}
+		fi
+	else
+		DOMAINS=`echo "${DOMAINS}" | xargs`
+		echo "WARNING: Following xmpp domains already set in your domain:"
+		echo "WARNING: '${DOMAINS}'"
+		echo "WARNING: Please check if this is correct."
+	fi
+	
+fi
+
+# FIXME: Is this call idempotent, or should we protect it against multiple invocations?
+ucs_addServiceToLocalhost "${SERVICE}" "$@"
+
+joinscript_save_current_version
+
+exit 0

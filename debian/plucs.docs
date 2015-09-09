@@ -1,0 +1,5 @@
+# Everything written there is converted documentation and should
+# be installed into the result package
+#
+docs/*.html
+

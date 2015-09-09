@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# PLUCS  postinst script
+#
+# Copyright 2013-2015 it25 GmbH
+#
+# http://www.it25.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <http://www.gnu.org/licenses/>.
+
+#DEBHELPER#
+
+. /usr/share/univention-lib/all.sh
+
+LNG=`ucr get locale/default | cut -f 1 -d '_'`
+
+# Prefill UCR variables of the plucs/... namespace
+ucr set \
+	plucs/loglevel?2 \
+	plucs/autostart?true \
+	plucs/tls?true \
+	plucs/certfile?/var/run/ejabberd/certs/ejabberd.pem \
+	plucs/grouplabel?cn \
+	plucs/userlabel?gecos \
+	plucs/restart/listener?true \
+	plucs/ldap/tls?true \
+	plucs/ldap/port?7636 \
+	plucs/language?${LNG} \
+	plucs/s2s?false \
+	plucs/s2s/tls?true \
+	plucs/s2s/certfile?/var/run/ejabberd/certs/ejabberd.pem \
+	plucs/http/bind?false \
+	plucs/http/poll?false \
+	plucs/http/proxy?false \
+	plucs/http/poll/url?/http-poll/ \
+	plucs/http/bind/url?/http-bind/
+	
+# Workaround: if we have enabled plucs/http/proxy then the web server
+# should at least be reloaded...
+APACHE=/etc/init.d/apache2
+[ -x ${APACHE} ] && ${APACHE} reload || true
+	
+# Open firewall port(s). Port 5280 (HTTP interface) only listens
+# on loopback and will always be addressed by the Apache Proxy,
+# so we don't need to record it here.
+FWBASE=security/packetfilter/package/plucs
+FWSCRIPT=/etc/init.d/univention-firewall
+ucr set \
+	${FWBASE}/tcp/5222/all/en?"XMPP main service" \
+	${FWBASE}/tcp/5222/all?ACCEPT \
+	${FWBASE}/tcp/5269/all/en?"XMPP s2s shaper" \
+	${FWBASE}/tcp/5269/all?ACCEPT
+	
+[ -x ${FWSCRIPT} ] && ${FWSCRIPT} restart
+	
+# Restart listener (we have installed a listener module)
+if [ "$1" = "configure" ]; then
+	if [ -x /etc/init.d/univention-directory-listener ] ; then
+		/etc/init.d/univention-directory-listener crestart || true
+	fi
+fi
+
+# The join script will set all server properties for the first
+# time, thus causing a daemon restart through the listener.
+# Note we ignore the result: the script will remain 'to be executed', but
+# the package install should succeed.
+call_joinscript 92plucs.inst || true
+
+exit 0

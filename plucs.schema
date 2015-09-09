@@ -1,0 +1,32 @@
+attributetype ( 1.3.6.1.4.1.10176.99998.1663.1.101 NAME 'xmppEnabled'
+    DESC 'Enabled state for XMPP objects'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.10176.99998.1663.1.103 NAME 'xmppDomain'
+    DESC 'Domain part of XMPP JID'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.10176.99998.1663.1.104 NAME 'xmppDomains'
+    DESC 'Domains hosted by a XMPP host'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+    )
+
+objectclass ( 1.3.6.1.4.1.10176.99998.1663.1.1 NAME 'univentionXMPPAccount'
+    SUP 'top' AUXILIARY
+    DESC 'User properties of users with an XMPP account'
+    MAY ( xmppEnabled $ xmppDomain ) )
+
+objectClass ( 1.3.6.1.4.1.10176.99998.1663.1.2 NAME 'univentionXMPPGroup'
+    SUP 'top' AUXILIARY
+    DESC 'XMPP-related properties of a user group'
+    MAY ( xmppEnabled ) )
+
+objectclass ( 1.3.6.1.4.1.10176.99998.1663.1.3 NAME 'univentionXMPPHost'
+    SUP 'top' AUXILIARY
+    DESC 'Host class for XMPP host'
+    MAY ( xmppDomains ) )
