@@ -1,0 +1,14 @@
+<p>
+  This is PLUCS, it brings instant messaging to your domain.
+
+  <ul>
+    <li>
+      It installs a Jabber (XMPP) service to your host, allowing
+      users to communicate over the XMPP protocol.
+    </li>
+    <li>
+      It adds some controls to the Management Console, allowing you
+      to manage the service as well as groups and users.
+    </li>
+  </ul>
+</p>

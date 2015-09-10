@@ -1,0 +1,24 @@
+<p>
+  PLUCS has been successfully installed onto your server. You can start using
+  the service right now.
+
+  <ol>
+    <li>
+      Open the properties of your server and assign one or more XMPP domains
+      which the server should be responsible for. You don't need this step
+      if this is the first installation of PLUCS in your domain: the primary
+      domain of your UCS system is already assigned.
+    </li>
+    <li>
+      Allow your users to use the service. In the properties of any user object
+      you'll find additional properties "XMPP enabled" and an "XMPP domain"
+      the user should belong to. Note that newly-created users will be enabled
+      and assigned to the primary UCS domain. For already existing users, you have
+      to manually perform this step.
+    </li>
+    <li>
+      Optionally, you can qualify user groups to be "XMPP groups". This makes
+      them appear in the so-called "roster" of the users' XMPP client.
+    </li>
+  </ol>
+</p>

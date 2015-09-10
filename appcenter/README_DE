@@ -1,0 +1,14 @@
+<p>
+  Dies ist PLUCS, es fügt einen Sofortnachrichtendienst zu Ihrer Domäne hinzu.
+
+  <ul>
+    <li>
+      Es installiert einen Jabber (XMPP) Dienst auf Ihrem Server, über den Ihre
+      Nutzer Sofortnachrichten austauschen können.
+    </li>
+    <li>
+      Es fügt der Management Console zusätzliche Eigenschaften hinzu, sodass Sie
+      sowohl den Dienst als auch Nutzer und Gruppen administrieren können.
+    </li>
+  </ul>
+</p>

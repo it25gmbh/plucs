@@ -1,0 +1,25 @@
+<p>
+  PLUCS ist nun auf Ihrem Server installiert. Sie können den Dienst sofort
+  nutzen. Hier sind die Arbeitsschritte, mit denen Sie den Dienst administrie-
+  ren können:
+
+  <ol>
+    <li>
+      Öffnen Sie die Eigenschaften des Servers und tragen Sie eine oder mehrere
+      XMPP-Domänen ein, für die der Server verantwortlich sein soll. Wenn dies
+      die erste Installation von PLUCS ist, ist für diesen Server bereits die
+      DNS-Domäne Ihres UCS-Systems eingetragen.
+    </li>
+    <li>
+      Berechtigen Sie Nutzer für diesen Dienst. Die Eigenschaften eines jeden
+      Nutzers sind um die Felder "XMPP erlaubt" und die Zuordnung zu einer
+      "XMPP Domäne" erweitert worden. Von nun an neu angelegte Nutzer werden
+      standardmäßig berechtigt und der primären Domäne zugeordnet; für bereits
+      bestehende Nutzer müssen Sie diesen Schritt selbst ausführen.
+    </li>
+    <li>
+      (optional) Benennen Sie Gruppen, die im jeweiligen XMPP Client erscheinen
+      sollen, wenn wenigstens eines ihrer Mitglieder online ist.
+    </li>
+  </ol>
+</p>
