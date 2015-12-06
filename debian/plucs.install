@@ -2,3 +2,5 @@
 93plucs-uninstall.uinst usr/lib/univention-uninstall
 plucs.py usr/lib/univention-directory-listener/system
 70plucs usr/lib/univention-server/server_password_change.d
+../mod_filter/mod_filter.beam usr/lib/ejabberd/ebin
+mod_filter.cfg etc/ejabberd

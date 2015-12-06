@@ -5,7 +5,16 @@ Build-Depends: debhelper (>> 7),
   univention-config-dev,
   ucslint,
   docbook-xml,
-  docbook-utils
+  docbook-utils,
+  erlang-base,
+  erlang-asn1,
+  erlang-parsetools,
+  erlang-dev (>= 1:15.b),
+  libexpat1-dev,
+  libssl-dev,
+  zlib1g-dev,
+  libpam0g-dev,
+  po-debconf
 Standards-Version: 3.8.2
 
 Package: plucs

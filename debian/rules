@@ -30,6 +30,7 @@ override_dh_auto_test:
 
 override_dh_auto_build:
 	docbook2html -o docs -u docs/manual.xml
+	scripts/build_mod_filter.sh
 	dh_auto_build
 
 override_dh_auto_install:
