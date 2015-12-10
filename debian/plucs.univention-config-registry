@@ -17,6 +17,7 @@ Variables: plucs/loglevel
 Variables: plucs/tls
 Variables: plucs/certfile
 Variables: plucs/grouplabel
+Variables: plucs/mod/filter
 Variables: plucs/userlabel
 Variables: plucs/ldap/tls
 Variables: plucs/ldap/port

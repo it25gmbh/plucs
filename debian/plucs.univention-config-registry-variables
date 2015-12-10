@@ -96,6 +96,12 @@ Type=str
 Description[de]=Zertifikatsdatei für Server-Server Verbindungen
 Description[en]=certificate file for server-to-server connections
 
+[plucs/mod/filter]
+Categories=Net
+Type=str
+Description[de]=Lade mod_filter und dazugehörige Konfiguration
+Description[en]=load mod_filter plus its configuration files
+
 # Namespace 'xmpp/*' meant for XMPP-related properties which are set
 # in UDM (LDAP properties named 'univention-xmpp-*') and brought to
 # us by the Notifier/Listener mechanism.

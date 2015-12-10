@@ -67,12 +67,21 @@ ucr set \
 	${FWBASE}/tcp/5269/all?ACCEPT
 	
 [ -x ${FWSCRIPT} ] && ${FWSCRIPT} restart
+
+# change ownership of plucs-groups cache dir
+CACHE_DIR=/var/cache/plucs
+[ -d ${CACHE_DIR} ] && chown -c listener:nogroup ${CACHE_DIR}
 	
 # Restart listener (we have installed a listener module)
 if [ "$1" = "configure" ]; then
 	if [ -x /etc/init.d/univention-directory-listener ] ; then
 		/etc/init.d/univention-directory-listener crestart || true
 	fi
+fi
+
+# Generate group cache
+if [ ! -s ${CACHE_DIR}/plucs-groups.cache ] ; then
+	univention-directory-listener-ctrl resync plucs-groups || true
 fi
 
 # The join script will set all server properties for the first

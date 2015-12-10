@@ -2,3 +2,4 @@ usr/lib/univention-install
 usr/lib/univention-uninstall
 usr/lib/univention-directory-listener/system
 usr/lib/univention-server/server_password_change.d
+var/cache/plucs
