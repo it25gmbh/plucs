@@ -79,6 +79,9 @@ if [ "$1" = "configure" ]; then
 	fi
 fi
 
+# TEMPORARY: clear group cache -> test rebuilding!
+rm -f ${CACHE_DIR}/plucs-groups.cache
+
 # Generate group cache
 if [ ! -s ${CACHE_DIR}/plucs-groups.cache ] ; then
 	univention-directory-listener-ctrl resync plucs-groups || true

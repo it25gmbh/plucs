@@ -23,7 +23,7 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
-VERSION=2
+VERSION=3
 
 . /usr/share/univention-lib/base.sh
 . /usr/share/univention-lib/ldap.sh
@@ -35,10 +35,18 @@ eval "$(univention-config-registry shell)"
 TAB_NAME_EN='Instant Messaging (XMPP)'
 TAB_NAME_DE='Sofortnachrichten (XMPP)'
 
+# ein Syntax-Objekt fuer die Liste der XMPP-Gruppen
+univention-directory-manager settings/syntax create "$@" --ignore_exists \
+	--position "cn=custom attributes,cn=univention,$ldap_base" \
+	--set name=xmpp_groups \
+	--set filter='(&(objectClass=univentionXMPPGroup)(xmppEnabled=TRUE))' \
+	--set attribute='groups/group: name' \
+	--set value='groups/group: name' || die
+
 # Container 'xmpp' als Behaelter fuer alle XMPP-bezogenen Attribute
 univention-directory-manager container/cn create "$@" --ignore_exists \
-		--position "cn=custom attributes,cn=univention,$ldap_base" \
-		--set name=xmpp || die
+	--position "cn=custom attributes,cn=univention,$ldap_base" \
+	--set name=xmpp || die
 
 # user -> univentionXmppEnabled
 univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
@@ -118,6 +126,56 @@ univention-directory-manager settings/extended_attribute create "$@" --ignore_ex
 	--set doNotSearch='0' \
 	--set hook='None' || die
 	
+# group -> list of groups this group is allowed to talk to
+univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
+	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" --set module="groups/group" \
+	--set ldapMapping='xmppMessageGroups' \
+	--set objectClass='univentionXMPPGroup' \
+	--set name='UniventionXMPP-Group-Message-Groups' \
+	--set shortDescription='message-allowed groups' \
+	--set longDescription='The groups that this group is allowed to talk to' \
+	--set translationShortDescription='"de_DE" "Nachrichten-erlaubte Gruppen"' \
+	--set translationLongDescription='"de_DE" "Die Gruppen, an die diese Gruppe Nachrichten verschicken darf"' \
+	--set tabName="${TAB_NAME_EN}" \
+	--set translationTabName="\"de_DE\" \"${TAB_NAME_DE}\"" \
+	--set overwriteTab='0' \
+	--set valueRequired='0' \
+	--set CLIName='xmppMessageGroups' \
+	--set syntax='xmpp_groups' \
+	--set tabAdvanced='1' \
+	--set mayChange='1' \
+	--set multivalue='1' \
+	--set deleteObjectClass='1' \
+	--set tabPosition='2' \
+	--set overwritePosition='0' \
+	--set doNotSearch='1' \
+	--set hook='None' || die
+
+# group -> list of groups this group is allowed to see
+univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
+	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" --set module="groups/group" \
+	--set ldapMapping='xmppPresenceGroups' \
+	--set objectClass='univentionXMPPGroup' \
+	--set name='UniventionXMPP-Group-Presence-Groups' \
+	--set shortDescription='presence-allowed groups' \
+	--set longDescription='The groups whose presence is allowed to show up' \
+	--set translationShortDescription='"de_DE" "Anwesenheit-erlaubte Gruppen"' \
+	--set translationLongDescription='"de_DE" "Die Gruppen, deren Anwesenheit sichtbar sein darf"' \
+	--set tabName="${TAB_NAME_EN}" \
+	--set translationTabName="\"de_DE\" \"${TAB_NAME_DE}\"" \
+	--set overwriteTab='0' \
+	--set valueRequired='0' \
+	--set CLIName='xmppPresenceGroups' \
+	--set syntax='xmpp_groups' \
+	--set tabAdvanced='1' \
+	--set mayChange='1' \
+	--set multivalue='1' \
+	--set deleteObjectClass='1' \
+	--set tabPosition='3' \
+	--set overwritePosition='0' \
+	--set doNotSearch='1' \
+	--set hook='None' || die
+
 # host -> list of served XMPP domains
 univention-directory-manager settings/extended_attribute create "$@" --ignore_exists \
 	--position "cn=xmpp,cn=custom attributes,cn=univention,$ldap_base" \
