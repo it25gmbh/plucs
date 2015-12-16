@@ -102,6 +102,18 @@ Type=str
 Description[de]=Lade mod_filter und dazugehörige Konfiguration
 Description[en]=load mod_filter plus its configuration files
 
+[plucs/mod/filter/presence_policy]
+Categories=Net
+Type=str
+Description[de]=Standardverhalten für PRESENCE Pakete
+Description[en]=default policy for PRESENCE stanzas
+
+[plucs/mod/filter/message_policy]
+Categories=Net
+Type=str
+Description[de]=Standardverhalten für MESSAGE Pakete
+Description[en]=default policy for MESSAGE stanzas
+
 # Namespace 'xmpp/*' meant for XMPP-related properties which are set
 # in UDM (LDAP properties named 'univention-xmpp-*') and brought to
 # us by the Notifier/Listener mechanism.

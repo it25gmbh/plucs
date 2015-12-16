@@ -29,6 +29,7 @@
 __package__ = ''	# workaround for PEP 366
 import listener
 import univention.debug as ud
+import univention.config_registry
 import os
 import io
 import re
@@ -179,89 +180,90 @@ def postrun():
 # --------------- helper functions ------------------
 
 def _write_groups_config():
-	"""write our static data into the config file (mod_filter_groups.cfg)"""
+	"""write our static data into the config file (mod_filter_groups.cfg)."""
 	
 	fn = '/etc/ejabberd/mod_filter_groups.cfg'
-	listener.setuid(0)
-	try:
-		f = io.open(fn,'w',encoding='utf-8')
-		f.write(u"%% ---------------------------------------------------------\n")
-		f.write(u"%% Group ACL file for eJabberD (PLUCS) XMPP service\n")
-		f.write(u"%% Please don't edit this file by hand, it will be overwritten\n")
-		f.write(u"%% by the next change to any XMPP-enabled group/user.\n")
-		f.write(u"%% ---------------------------------------------------------\n\n")
+	txt = ''
 
-		for g in _cache['groups'].keys():
-			if g in _cache['groups']:
-				utemp = []
-				for u in _cache['groups'][g]:
-					if u in _cache['users']:
-						utemp.append(u)
-				if len(utemp):
-					f.write(u"%% ------- %s ------\n" % _cache['gname'][g])
-					for u in utemp:
-						f.write(u"{acl, %s, {user, \"%s\"}}.\n" % (g,u))
+	txt += u"%% ---------------------------------------------------------\n"
+	txt += u"%% Group ACL file for eJabberD (PLUCS) XMPP service\n"
+	txt += u"%% Please don't edit this file by hand, it will be overwritten\n"
+	txt += u"%% by the next change to any XMPP-enabled group/user.\n"
+	txt += u"%% ---------------------------------------------------------\n\n"
 
-	except Exception,e:
-		ud.debug(ud.LISTENER,ud.WARN,"Could not write '%s': %s" % (fn,str(e)))
+	for g in _cache['groups'].keys():
+		if g in _cache['groups']:
+			utemp = []
+			for u in _cache['groups'][g]:
+				if u in _cache['users']:
+					utemp.append(u)
+			if len(utemp):
+				txt += u"%% ------- %s ------\n" % _cache['gname'][g]
+				for u in utemp:
+					txt += u"{acl, %s, {user, \"%s\"}}.\n" % (g,u)
+					
+	_safe_write(fn,txt)
 
-	finally:
-		f.close()
-		listener.unsetuid()
 
 def _write_rights_config():
-	"""write our static data into the config file (mod_filter.cfg)"""
+	"""write our static data into the config file (mod_filter.cfg).
+	Uses UCR variables for the policies to be applied.
+	"""
 
+	ucr = univention.config_registry.ConfigRegistry()
+	ucr.load()
+	
 	fn = '/etc/ejabberd/mod_filter.cfg'
-	listener.setuid(0)
-	try:
-		f = io.open(fn,'w',encoding='utf-8')
-		f.write(u"%% ---------------------------------------------------------\n")
-		f.write(u"%% Access rules file for eJabberD (PLUCS) XMPP service\n")
-		f.write(u"%% Please don't edit this file by hand, it will be overwritten\n")
-		f.write(u"%% by the next change to any XMPP-enabled group/user.\n")
-		f.write(u"%% ---------------------------------------------------------\n\n")
-		
 
-		# empty permission lists for all known sender groups
-		mesg_dict = {}
-		pres_dict = {}
-		for g in _cache['groups'].keys():
-			pres_dict[g] = []
-			mesg_dict[g] = []
+	txt = u''
+	txt +=	u"%% ---------------------------------------------------------\n"
+	txt +=	u"%% Access rules file for eJabberD (PLUCS) XMPP service\n"
+	txt +=	u"%% Please don't edit this file by hand, it will be overwritten\n"
+	txt +=	u"%% by the next change to any XMPP-enabled group/user.\n"
+	txt +=	u"%% ---------------------------------------------------------\n\n"
+
+	# empty permission lists for all known sender groups
+	mesg_dict = {}
+	pres_dict = {}
+	for g in _cache['groups'].keys():
+		pres_dict[g] = []
+		mesg_dict[g] = []
+
+	for g in _cache['groups'].keys():
+		txt += u"%% Group: '%s' (%s)\n" % (g,_cache['gname'][g])
 			
-		for g in _cache['groups'].keys():
-			f.write(u"%% Group: '%s' (%s)\n" % (g,_cache['gname'][g]))
-			
-			# collect 'message' permissions
-			if ('r_mesg' in _cache) and (g in _cache['r_mesg']):
-				for tg in _cache['r_mesg'][g]:
-					if tg in _cache['groups']:
-						f.write(u"%%   Message   ->  [%s]\n" % tg)
-						mesg_dict[g].append(tg)
-					else:
-						f.write(u"%%   Message   ->  [%s] (ignored)\n" % tg)
+		# collect 'message' permissions
+		if ('r_mesg' in _cache) and (g in _cache['r_mesg']):
+			for tg in _cache['r_mesg'][g]:
+				if tg in _cache['groups']:
+					txt += u"%%   Message   ->  [%s]\n" % tg
+					mesg_dict[g].append(tg)
+				else:
+					txt += u"%%   Message   ->  [%s] (ignored)\n" % tg
 						
-			# collect 'presence' permissions
-			if ('r_pres' in _cache) and (g in _cache['r_pres']):
-				for tg in _cache['r_pres'][g]:
-					if tg in _cache['groups']:
-						f.write(u"%%   Presence  <-  [%s]\n" % tg)
-						pres_dict[tg].append(g)
-					else:
-						f.write(u"%%   Presence  <-  [%s] (ignored)\n" % tg)
+		# collect 'presence' permissions
+		if ('r_pres' in _cache) and (g in _cache['r_pres']):
+			for tg in _cache['r_pres'][g]:
+				if tg in _cache['groups']:
+					txt += u"%%   Presence  <-  [%s]\n" % tg
+					pres_dict[tg].append(g)
+				else:
+					txt += u"%%   Presence  <-  [%s] (ignored)\n" % tg
 		
-		f.write(u"\n{access, mod_filter, [{allow, all}]}.\n\n")
-		f.write(_config_tuple(mesg_dict,'mod_filter_message','message_'))
-		f.write(_config_tuple(pres_dict,'mod_filter_presence','presence_'))
+	txt += u"\n{access, mod_filter, [{allow, all}]}.\n\n"
+
+	pol = re.split('[, ]+',ucr.get('plucs/mod/filter/message_policy','deny,deny'))
+	ud.debug(ud.LISTENER, ud.INFO, "plucs-groups: applying policy [%s/%s] to MESSAGE stanzas" % (pol[0],pol[1]))
+	txt += _config_tuple(mesg_dict,'mod_filter_message','message_',pol[0],pol[1])
+
+	pol = re.split('[, ]+',ucr.get('plucs/mod/filter/presence_policy','deny,deny'))
+	ud.debug(ud.LISTENER, ud.INFO, "plucs-groups: applying policy [%s/%s] to PRESENCE stanzas" % (pol[0],pol[1]))
+	txt += _config_tuple(pres_dict,'mod_filter_presence','presence_',pol[0],pol[1])
 		
-		f.write(u"{access, mod_filter_iq, [{allow, all}]}.\n\n")
+	txt += "{access, mod_filter_iq, [{allow, all}]}.\n\n"
+	
+	_safe_write(fn,txt)
 		
-	except Exception,e:
-		ud.debug(ud.LISTENER,ud.WARN,"Could not write '%s': %s" % (fn,str(e)))
-	finally:
-		f.close()
-		listener.unsetuid()
 	
 # ----------------- users -------------------
 
@@ -394,3 +396,37 @@ def _config_tuple(dict,name,prefix,pol1='allow',pol2='deny'):
 	result += u"]}.\n"
 	
 	return (result + other_rules + u"\n")
+
+def _safe_write(fname,content):
+	"""Safe write to a file.
+
+	(1)	create a temp file, write content.
+	(2)	rename to real destination name.
+
+	Sets identity to root.
+	
+	Error behaviour:
+		-	catches all exceptions
+		-	writes log here
+		
+	To return true/false on success/failure doesn't make sense since our callers
+	don't bother looking at our results.
+	"""
+	
+	bakfile = fname + '.tmp'
+	
+	listener.setuid(0)
+	try:
+		f = io.open(bakfile,'w',encoding='utf-8')
+		f.write(content)
+		f.close()
+		ud.debug(ud.LISTENER,ud.INFO,"plucs-groups: File '%s' written (%d chars)" % (bakfile,len(content)))
+		os.rename(bakfile,fname)
+		ud.debug(ud.LISTENER,ud.INFO,"plucs-groups: File '%s' renamed to '%s'" % (bakfile,fname))
+
+	except Exception,e:
+		ud.debug(ud.LISTENER,ud.WARN,"plucs-groups: Could not write '%s': %s" % (bakfile,str(e)))
+
+	finally:
+		f.close()
+		listener.unsetuid()

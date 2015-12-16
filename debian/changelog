@@ -1,12 +1,13 @@
-plucs (0.2-2) UNRELEASED; urgency=low
+plucs (0.2-1.dev1) UNRELEASED; urgency=low
 
   * Fixes Bug #2900: Default domain is not set when not running on DC
     master
   * Fixes Bug #3037: Fetch LDAP hosts from different variables.
   * Fixes #10: Adjusted group filter for current version of MSRL.
   * Building and shipping mod_filter now.
+  * Mod_filter group properties integrated in UDM.
 
- -- Frank Greif <fg@it25.de>  Fri, 04 Dec 2015 16:31:00 +0100
+ -- Frank Greif <fg@it25.de>  Mon, 14 Dec 2015 14:45:00 +0100
 
 plucs (0.2-1) unstable; urgency=low
 

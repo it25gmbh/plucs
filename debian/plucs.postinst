@@ -48,7 +48,10 @@ ucr set \
 	plucs/http/poll?false \
 	plucs/http/proxy?false \
 	plucs/http/poll/url?/http-poll/ \
-	plucs/http/bind/url?/http-bind/
+	plucs/http/bind/url?/http-bind/ \
+	plucs/mod/filter?false \
+	plucs/mod/filter/message_policy?deny,deny \
+	plucs/mod/filter/presence_policy?deny,deny
 	
 # Workaround: if we have enabled plucs/http/proxy then the web server
 # should at least be reloaded...
