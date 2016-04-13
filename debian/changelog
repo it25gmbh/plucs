@@ -1,4 +1,4 @@
-plucs (0.2-1.dev1) UNRELEASED; urgency=low
+plucs (0.2-2) unstable; urgency=low
 
   * Fixes Bug #2900: Default domain is not set when not running on DC
     master
@@ -6,8 +6,10 @@ plucs (0.2-1.dev1) UNRELEASED; urgency=low
   * Fixes #10: Adjusted group filter for current version of MSRL.
   * Building and shipping mod_filter now.
   * Mod_filter group properties integrated in UDM.
+  * Mod_filter: reworked code for policies.
+  * Closes #9: Feature 'mod_filter' tested and finished.
 
- -- Frank Greif <fg@it25.de>  Mon, 14 Dec 2015 14:45:00 +0100
+ -- Frank Greif <fg@it25.de>  Wed, 13 Apr 2016 14:16:28 +0200
 
 plucs (0.2-1) unstable; urgency=low
 

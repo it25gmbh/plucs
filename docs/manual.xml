@@ -7,7 +7,7 @@
 	<chapter id="preface">
 		<title>Preface</title>
 		<para>
-			This documentation applies to <emphasis>PLUCS</emphasis>
+			This document applies to <emphasis>PLUCS</emphasis>
 			version 0.2-2.
 		</para>
 		<para>
@@ -275,7 +275,15 @@
 											<emphasis>true</emphasis>
 											,
 											meaning that the daemon will be restarted 15 seconds after any
-											change.
+											change related to the configuration of the eJabberD daemon.
+											<note>
+												<para>
+													If you have switched on the <emphasis>mod_filter</emphasis>
+													functionality you may rethink this setting because it would
+													restart your eJabberD on every change of permission properties
+													of groups.
+												</para>
+											</note>
 										</para>
 									</formalpara>
 								</listitem>
@@ -298,6 +306,20 @@
 											</ulink>
 											for
 											details.
+										</para>
+									</formalpara>
+								</listitem>
+								<listitem>
+									<formalpara>
+										<title>plucs/mod/filter: switch on mod_filter functionality
+										</title>
+										<para>
+											Starting with v0.2-2, plucs comes with the possibility to restrict
+											Presence (visibility) and Message (talk) packets based on group
+											membership of any given user. This setting allows switching this
+											feature on and off. Default is 'off', just to keep backwards
+											compatibility. Read more about this feature in
+											<xref linkend="admin:group:filter" />.
 										</para>
 									</formalpara>
 								</listitem>
@@ -916,62 +938,229 @@
 		</section>
 		<section id="admin:group">
 			<title>Group administration</title>
-			<para>
-				The XMPP daemon has a feature called
-				<emphasis>shared
-					roster
-				</emphasis>,
-				that can maintain groups and users to appear in
-				the users&apos; contact roster. This means that users don&apos;t
-				have to manually confirm each other for inclusion into their
-				respective roster (the so-called
-				<emphasis>authorization</emphasis>
-				). You (the administrator) can assign users to groups, and therefore
-				enable groups to appear in the roster whenever one or more group
-				members are online.
-			</para>
-			<note>
+			<section id="admin:group:roster">
+				<title>Shared Roster</title>
 				<para>
-					It is necessary to choose which property of any given group
-					is to be used as the
-					<emphasis>group name</emphasis>
-					. This is done
-					by setting the UCR variable
-					<command>plucs/userlabel</command>
-					to
-					the desired property. The default setting (set on first install of
-					PLUCS on any given host) is the
-					<command>CN</command>
-					. If you
-					forget to set that property for a group, the group would be
-					presented as having no name. XMPP clients usually compensate for
-					this by assigning a generic name, usually &quot;Buddies&quot; or
-					&quot;Ungrouped&quot;.
+					The XMPP daemon has a feature called
+					<emphasis>shared
+						roster
+					</emphasis>,
+					that can maintain groups and users to appear in
+					the users&apos; contact roster. This means that users don&apos;t
+					have to manually confirm each other for inclusion into their
+					respective roster (the so-called
+					<emphasis>authorization</emphasis>
+					). You (the administrator) can assign users to groups, and therefore
+					enable groups to appear in the roster whenever one or more group
+					members are online.
 				</para>
-			</note>
-			<para>Some remarks to these groups:-</para>
-			<itemizedlist>
-				<listitem>
-					<para>The permission to use XMPP for any given user doesn&apos;t
-						depend on a group membership. This means you can&apos;t switch off
-						a group of users by simply disabling a group.
+				<note>
+					<para>
+						It is necessary to choose which property of any given group
+						is to be used as the
+						<emphasis>group name</emphasis>
+						. This is done
+						by setting the UCR variable
+						<command>plucs/userlabel</command>
+						to
+						the desired property. The default setting (set on first install of
+						PLUCS on any given host) is the
+						<command>CN</command>
+						. If you
+						forget to set that property for a group, the group would be
+						presented as having no name. XMPP clients usually compensate for
+						this by assigning a generic name, usually &quot;Buddies&quot; or
+						&quot;Ungrouped&quot;.
 					</para>
-				</listitem>
-				<listitem>
-					<para>Any XMPP user can be member of any number of groups. It is
-						up to the individual user-client as to how users that are members
-						of multiple groups are to be displayed.
-					</para>
-				</listitem>
-				<listitem>
-					<para>Groups
-						in this sense can&apos;t be used to limit which users
-						are visible to other users. The visibility scope is always the
-						<emphasis>XMPP domain</emphasis>
-						of the given user.
-					</para>
-				</listitem>
-			</itemizedlist>
+				</note>
+				<para>Some remarks to these groups:-</para>
+				<itemizedlist>
+					<listitem>
+						<para>The permission to use XMPP for any given user doesn&apos;t
+							depend on a group membership. This means you can&apos;t switch off
+							a group of users by simply disabling a group.
+						</para>
+					</listitem>
+					<listitem>
+						<para>Any XMPP user can be member of any number of groups. It is
+							up to the individual user-client as to how users that are members
+							of multiple groups are to be displayed.
+						</para>
+					</listitem>
+					<listitem>
+						<para>Groups
+							in this sense can&apos;t be used to limit which users
+							are visible to other users. The visibility scope is always the
+							<emphasis>XMPP domain</emphasis>
+							of the given user. If you want to restrict communication you
+							can now use the feature <emphasis>mod_filter</emphasis> as
+							described in <xref linkend="admin:group:filter" />.
+						</para>
+					</listitem>
+					<listitem>
+						<para>The eJabberD module that realizes the "shared roster" functionality
+							has somewhat undocumented behaviour as of when it decides to reread
+							LDAP group membership (it maintains some kind of cache), and additionally
+							there's no definite API to notify clients about changes in group
+							membership. So don't be too impatient when any given change will show
+							up at the users' clients.
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section id="admin:group:filter">
+				<title>Restricting communication</title>
+				<para>
+					Starting with plucs 0.2-2, plucs comes with the feature to restrict
+					communication based on group membership. This is a slightly complicated
+					scheme, so it deserves a separate section. The feature will be realized
+					by a distinct module named <emphasis>mod_filter</emphasis>. Using the
+					UCR directive <emphasis>plucs/mod/filter</emphasis> you can switch on
+					and off this module. For backwards compatibility, the module is left switched
+					off if you update from any earlier version.
+				</para>
+				<para>
+					The module can restrict four different classes of so-called <emphasis>
+					stanzas</emphasis> which can be roughly thought of as being network packets.
+					The current integration only restricts two of those types:-
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Message</emphasis> is the type of stanza that
+								carries the pure communication, so this is what we can
+								consider the permission to talk. Even if one can select an user
+								from the roster (or eventually from a central directory) the
+								other one would not even notice any talk attempts if the
+								message permission is set to drop those packets.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Presence</emphasis> is the type of stanza that
+								causes a given user to be visible to others. Given the fact that
+								different clients handle visibility differently, you should
+								carefully think if you plan to set the presence permissions to
+								something different from the message permissions. For instance,
+								users allowed to talk but not allowed to be visible will normally
+								be shown as being "offline" to each other. It can easily confuse
+								users confronted with this seemingly inconsistent behaviour of
+								their client programs.
+							</para>
+						</listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					The feature will be tied to groups. This means, any permissions given
+					to groups apply to all of their respective members. Note that eJabberD
+					doesn't have the notion of groups at all; the whole feature is implemented
+					such that groups (coming from our central LDAP directory) are translated
+					into access control lists (ACLs) that can be addressed by eJabberD as
+					if they were groups. In LDAP (or, for that matter, in <emphasis>Univention
+					Directory Manager</emphasis>), the following group properties are defined:-
+					<itemizedlist>
+						<listitem>
+							<formalpara>
+								<title>message-allowed groups</title>
+								<para>
+									This is a list of groups that this group is allowed
+									to talk to.
+								</para>
+							</formalpara>
+						</listitem>
+						<listitem>
+							<formalpara>
+								<title>presence-allowed groups</title>
+								<para>
+									This is a list of groups that this group is allowed
+									to see (receive presence information).
+									<note>
+										<para>Technically, the presence permission is implemented in reverse: the
+											other groups have the permission to <emphasis>send</emphasis>
+											presence stanzas to this group.</para>
+									</note>
+									<note>
+										<para>Note that presence is not automatically reissused when permissions
+											change. Some clients refresh presence periodically (and/or perhaps
+											have a config setting to change that), some issue presence only
+											on login/logout. So there's always a timespan where visibility does
+											not necessarily reflect the real permissions.</para>
+									</note>
+									<note>
+										<para>Note that even the group itself is not automatically included into
+										the permission list, so you can even implement groups whose members aren't
+										allowed to talk to each other.</para>
+									</note>
+								</para>
+							</formalpara>
+						</listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					To get a behaviour that is manageable and understandable by the Administrator, the
+					general model is that everything is forbidden except it was explicitly allowed. This
+					means if you switch on this feature without having set any permissions on groups, you'll
+					end up in a situation where nobody can see anybody, and nobody can talk to anybody.
+					If the permission scheme you want to achieve is based on different thinking there are some
+					advanced controls that help you set a different default behaviour. These are the so-called
+					<emphasis>policies</emphasis> that apply to every group that doesn't have any permissions
+					set. These policies can have the following values:-
+					<itemizedlist>
+						<listitem>
+							<para><emphasis>allow</emphasis> means: as long as the
+							<emphasis>allowed groups</emphasis> list for a given permission
+							is empty the permission is granted as if ALL groups were listed
+							there. But as soon as you insert at least one group only the
+							listed groups are allowed for the given permission.
+							</para>
+						</listitem>
+						<listitem>
+							<para><emphasis>deny</emphasis> With this setting, the permission
+							is always only granted for groups listed, so if none are listed
+							then it boils down to not allow anything.
+							</para>
+						</listitem>
+					</itemizedlist>
+					Here are the UCR variables you can set:-
+					<itemizedlist>
+						<listitem>
+							<formalpara>
+								<title>plucs/mod/filter/message_policy</title>
+								<para>
+									This is the policy to apply for the <emphasis>message</emphasis>
+									permission.
+								</para>
+							</formalpara>
+						</listitem>
+						<listitem>
+							<formalpara>
+								<title>plucs/mod/filter/presence_policy</title>
+								<para>
+									This is the policy to apply for the <emphasis>presence</emphasis>
+									permission.
+								</para>
+							</formalpara>
+						</listitem>
+					</itemizedlist>
+					The default value for these two policies, according to the permission model mentioned above,
+					is <emphasis>deny</emphasis>.
+					<note>
+						<para>
+							Note that the policy values are directly evaluated as config values in eJabberD, so if you
+							misspell one of these keywords your eJabberD will treat this as a syntax error in a configuration
+							file, and will most likely refuse to start.
+						</para>
+					</note>
+					<note>
+						<para>Note that configuration is only regenerated whenever some properties
+						of LDAP objects have changed. So if you have changed the policies you have to manually
+						trigger the regeneration of config files:-
+						<programlisting>univention-directory-listener-ctrl resync plucs-groups</programlisting>
+						This will regenerate the configuration and (after the usual wait time of 15 secs) the
+						reload of the permissions into the eJabberD server.
+						</para>
+					</note>
+				</para>
+			</section>
 		</section>
 		<section id="admin:client">
 			<title>Client administration</title>

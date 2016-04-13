@@ -50,9 +50,22 @@ ucr set \
 	plucs/http/poll/url?/http-poll/ \
 	plucs/http/bind/url?/http-bind/ \
 	plucs/mod/filter?false \
-	plucs/mod/filter/message_policy?deny,deny \
-	plucs/mod/filter/presence_policy?deny,deny
-	
+	plucs/mod/filter/message_policy?deny \
+	plucs/mod/filter/presence_policy?deny
+
+CACHE_DIR=/var/cache/plucs
+
+# Updating from development version? correct policy tuples into single value,
+# and force regenerating the config files
+if [ -n "$2" ] ; then
+	if expr "$2" : '.*dev' >/dev/null 2>/dev/null; then
+		echo "Updating from development version '$2'" >&2
+		ucr set plucs/mod/filter/message_policy=`ucr get plucs/mod/filter/message_policy | cut -f 1 -d ','`
+		ucr set plucs/mod/filter/presence_policy=`ucr get plucs/mod/filter/presence_policy | cut -f 1 -d ','`
+		rm -f ${CACHE_DIR}/plucs-groups.cache || true
+	fi
+fi
+
 # Workaround: if we have enabled plucs/http/proxy then the web server
 # should at least be reloaded...
 APACHE=/etc/init.d/apache2
@@ -72,7 +85,6 @@ ucr set \
 [ -x ${FWSCRIPT} ] && ${FWSCRIPT} restart
 
 # change ownership of plucs-groups cache dir
-CACHE_DIR=/var/cache/plucs
 [ -d ${CACHE_DIR} ] && chown -c listener:nogroup ${CACHE_DIR}
 	
 # Restart listener (we have installed a listener module)
@@ -81,9 +93,6 @@ if [ "$1" = "configure" ]; then
 		/etc/init.d/univention-directory-listener crestart || true
 	fi
 fi
-
-# TEMPORARY: clear group cache -> test rebuilding!
-rm -f ${CACHE_DIR}/plucs-groups.cache
 
 # Generate group cache
 if [ ! -s ${CACHE_DIR}/plucs-groups.cache ] ; then

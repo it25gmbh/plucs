@@ -243,22 +243,27 @@ def _write_rights_config():
 						
 		# collect 'presence' permissions
 		if ('r_pres' in _cache) and (g in _cache['r_pres']):
-			for tg in _cache['r_pres'][g]:
-				if tg in _cache['groups']:
-					txt += u"%%   Presence  <-  [%s]\n" % tg
-					pres_dict[tg].append(g)
-				else:
-					txt += u"%%   Presence  <-  [%s] (ignored)\n" % tg
+			if len(_cache['r_pres'][g]):
+				for tg in _cache['r_pres'][g]:
+					if tg in _cache['groups']:
+						txt += u"%%   Presence  <-  [%s]\n" % tg
+						pres_dict[tg].append(g)
+					else:
+						txt += u"%%   Presence  <-  [%s] (ignored)\n" % tg
+			else:
+				if (ucr.get('plucs/mod/filter/presence_policy','deny') == 'allow'):
+					txt += u"%   -- applying 'allow' policy for presence --\n"
+					for tg in _cache['groups'].keys():
+						txt += u"%%   Presence  -<  [%s]\n" % tg
+						pres_dict[tg].append(g)
 		
 	txt += u"\n{access, mod_filter, [{allow, all}]}.\n\n"
 
-	pol = re.split('[, ]+',ucr.get('plucs/mod/filter/message_policy','deny,deny'))
-	ud.debug(ud.LISTENER, ud.INFO, "plucs-groups: applying policy [%s/%s] to MESSAGE stanzas" % (pol[0],pol[1]))
-	txt += _config_tuple(mesg_dict,'mod_filter_message','message_',pol[0],pol[1])
+	pol = ucr.get('plucs/mod/filter/message_policy','deny'))
+	ud.debug(ud.LISTENER, ud.INFO, "plucs-groups: applying policy [%s] to MESSAGE stanzas" % pol)
+	txt += _config_tuple(mesg_dict,'mod_filter_message','message_',pol)
 
-	pol = re.split('[, ]+',ucr.get('plucs/mod/filter/presence_policy','deny,deny'))
-	ud.debug(ud.LISTENER, ud.INFO, "plucs-groups: applying policy [%s/%s] to PRESENCE stanzas" % (pol[0],pol[1]))
-	txt += _config_tuple(pres_dict,'mod_filter_presence','presence_',pol[0],pol[1])
+	txt += _config_tuple(pres_dict,'mod_filter_presence','presence_')
 		
 	txt += "{access, mod_filter_iq, [{allow, all}]}.\n\n"
 	
@@ -351,7 +356,7 @@ def _save_data():
 		                                                                
 # ---------------------- optimization -----------------
 
-def _config_tuple(dict,name,prefix,pol1='allow',pol2='deny'):
+def _config_tuple(dict,name,prefix,pol='deny'):
 	"""Returns a snippet of Erlang config items, built from the 'dict' dictionary,
 	suitable as access rules.
 	
@@ -365,13 +370,10 @@ def _config_tuple(dict,name,prefix,pol1='allow',pol2='deny'):
 		prefix:
 			the string to prepend onto a group name -> name of associated sub-rule
 			
-		pol1:
+		pol:
 			the policy (fallback rule for 'no match') for the first-level
-			access rule
-			
-		pol2:
-			the policy (fallback rule for 'no match') for all second-level
-			access rules
+			access rule (if a group doesn't have any groups set for a given
+			permission)
 			
 	All group names are already sanitized, we don't refer to any other
 	data but the 'dict' passed in.
@@ -386,13 +388,11 @@ def _config_tuple(dict,name,prefix,pol1='allow',pol2='deny'):
 			rule = u"{access, %s%s, [\n" % (prefix,src)
 			for dst in dict[src]:
 				rule += u"\t{allow, %s},\n" % dst
-			rule += u"\t{%s, all}\n" % pol2
+			rule += u"\t{deny, all}\n"
 			rule += u"]}.\n"
 			other_rules += rule
-		else:
-			result += u"\t{deny, %s},\n" % src
 
-	result += u"\t{%s, all}\n" % pol1
+	result += u"\t{%s, all}\n" % pol
 	result += u"]}.\n"
 	
 	return (result + other_rules + u"\n")
