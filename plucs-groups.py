@@ -259,7 +259,7 @@ def _write_rights_config():
 		
 	txt += u"\n{access, mod_filter, [{allow, all}]}.\n\n"
 
-	pol = ucr.get('plucs/mod/filter/message_policy','deny'))
+	pol = ucr.get('plucs/mod/filter/message_policy','deny')
 	ud.debug(ud.LISTENER, ud.INFO, "plucs-groups: applying policy [%s] to MESSAGE stanzas" % pol)
 	txt += _config_tuple(mesg_dict,'mod_filter_message','message_',pol)
 

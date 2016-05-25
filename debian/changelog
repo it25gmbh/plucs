@@ -9,8 +9,9 @@ plucs (0.2-2) unstable; urgency=low
   * Mod_filter: reworked code for policies.
   * Closes #9: Feature 'mod_filter' tested and finished.
   * Closes #1: Added IPv6 support.
+  * Fixed a typo in plucs-groups.py
 
- -- Frank Greif <fg@it25.de>  Wed, 13 Apr 2016 14:16:28 +0200
+ -- Frank Greif <fg@it25.de>  Wed, 25 May 2016 17:33:47 +0200
 
 plucs (0.2-1) unstable; urgency=low
 
