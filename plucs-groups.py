@@ -123,7 +123,7 @@ def handler(dn, new, old):
 			if enab:
 				r_mesg = map(_sane_groupname,new.get('xmppMessageGroups',[]))
 				r_pres = map(_sane_groupname,new.get('xmppPresenceGroups',[]))
-				_add_group(grpn,gn,new.get('memberUid'),r_mesg,r_pres)
+				_add_group(grpn,gn,new.get('memberUid',[]),r_mesg,r_pres)
 		
 		changed = True
 	

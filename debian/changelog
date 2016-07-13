@@ -1,3 +1,9 @@
+plucs (0.2-3) UNRELEASED; urgency=medium
+
+  * Fixes #18: Listener crash when group is empty
+
+ -- Frank Greif <fg@it25.de>  Wed, 13 Jul 2016 10:09:08 +0200
+
 plucs (0.2-2) unstable; urgency=low
 
   * Fixes Bug #2900: Default domain is not set when not running on DC
