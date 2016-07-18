@@ -1,6 +1,8 @@
 plucs (0.2-3) UNRELEASED; urgency=medium
 
   * Fixes #18: Listener crash when group is empty
+  * Fixes #15: Typo in ejabberd.cfg, thanks to @jceb for reporting and
+    @ngulden for fixing
 
  -- Frank Greif <fg@it25.de>  Wed, 13 Jul 2016 10:09:08 +0200
 
