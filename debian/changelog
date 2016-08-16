@@ -1,10 +1,11 @@
-plucs (0.2-3) UNRELEASED; urgency=medium
+plucs (0.2-3) unstable; urgency=medium
 
   * Fixes #18: Listener crash when group is empty
   * Fixes #15: Typo in ejabberd.cfg, thanks to @jceb for reporting and
     @ngulden for fixing
+  * Updated screenshots and other Appcenter files
 
- -- Frank Greif <fg@it25.de>  Wed, 13 Jul 2016 10:09:08 +0200
+ -- Frank Greif <fg@it25.de>  Tue, 16 Aug 2016 14:58:01 +0200
 
 plucs (0.2-2) unstable; urgency=low
 
