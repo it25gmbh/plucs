@@ -4,6 +4,8 @@ plucs (0.2-3) unstable; urgency=medium
   * Fixes #15: Typo in ejabberd.cfg, thanks to @jceb for reporting and
     @ngulden for fixing
   * Updated screenshots and other Appcenter files
+  * Fixed regression introduced with #15: LDAP attribute name is case-
+    sensitive here.
 
  -- Frank Greif <fg@it25.de>  Tue, 16 Aug 2016 14:58:01 +0200
 
