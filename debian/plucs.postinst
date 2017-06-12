@@ -36,7 +36,7 @@ ucr set \
 	plucs/tls?true \
 	plucs/certfile?/var/run/ejabberd/certs/ejabberd.pem \
 	plucs/grouplabel?cn \
-	plucs/userlabel?gecos \
+	plucs/userlabel?displayName \
 	plucs/restart/listener?true \
 	plucs/ldap/tls?true \
 	plucs/ldap/port?7636 \
